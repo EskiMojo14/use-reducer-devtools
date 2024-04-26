@@ -296,7 +296,6 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
   useEffect(
     () =>
       devtools.subscribe((message: PostMessage<S, A>) => {
-        dispatch(postMessage(message));
         switch (message.type) {
           case MessageTypes.DISPATCH: {
             switch (message.payload.type) {
@@ -311,6 +310,7 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
             }
           }
         }
+        dispatch(postMessage(message));
       }),
     [dispatch],
   );
