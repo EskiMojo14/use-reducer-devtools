@@ -239,7 +239,7 @@ const liftReducer =
     reducer: Reducer<S, A>,
     initialState: S,
     config: Config,
-    recordingRef: MutableRefObject<boolean>,
+    pausedRef: MutableRefObject<boolean>,
     lockedRef: MutableRefObject<boolean>,
   ): Reducer<ActionState<S, A>, A | PostMessageAction<S, A>> =>
   (state, action) => {
@@ -255,7 +255,7 @@ const liftReducer =
       );
     }
 
-    if (!recordingRef.current) {
+    if (pausedRef.current) {
       return {
         state: reducer(state.state, action),
         actions: state.actions,
@@ -286,17 +286,11 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
     return undefined;
   });
 
-  const recordingRef = useRef(config.shouldRecordChanges ?? true);
+  const pausedRef = useRef(config.shouldRecordChanges ?? true);
   const lockedRef = useRef(config.shouldStartLocked ?? false);
 
   const [{ state, actions }, dispatch] = useReducer(
-    liftReducer(
-      reducer,
-      initialStateRef.current,
-      config,
-      recordingRef,
-      lockedRef,
-    ),
+    liftReducer(reducer, initialStateRef.current, config, pausedRef, lockedRef),
     {
       state: initialStateRef.current,
       actions: [],
@@ -334,10 +328,11 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
             }
           | undefined
       )?.subscribe((message) => {
+        console.log(message);
         if (message.type === MessageTypes.DISPATCH) {
           switch (message.payload.type) {
             case ActionTypes.PAUSE_RECORDING:
-              recordingRef.current = message.payload.status;
+              pausedRef.current = message.payload.status;
               break;
             case ActionTypes.LOCK_CHANGES:
               lockedRef.current = message.payload.status;
