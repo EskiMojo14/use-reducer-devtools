@@ -26,10 +26,18 @@ const counterSlice = createSlice({
 const { increment, decrement } = counterSlice.actions;
 
 function App() {
+  // redux-style actions
   const [count, dispatch] = useReducerWithDevtools(
     counterSlice.reducer,
     counterSlice.getInitialState,
     { actionCreators: counterSlice.actions },
+  );
+
+  // custom actions - in this case, just a number
+  const [countUp, increaseBy] = useReducerWithDevtools(
+    (state: number, action: number) => state + action,
+    0,
+    { actionCreators: { increaseBy: (amount: number) => amount } },
   );
 
   return (
@@ -50,6 +58,11 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
+      </div>
+      <div className="card">
+        <p>countUp is {countUp}</p>
+        <button onClick={() => increaseBy(10)}>Increase by 10</button>
+        <button onClick={() => increaseBy(-5)}>Decrease by 5</button>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more

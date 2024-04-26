@@ -70,3 +70,38 @@ incomingMessage.match = <S, A extends Action>(
   action: Action,
 ): action is IncomingMessageAction<S, A> =>
   action.type === UseReducerActions.INCOMING;
+
+export function isAction(action: unknown): action is Action {
+  return typeof action === "object" && !!action && "type" in action;
+}
+
+const isWrappedAction = `${prefix}/IS_WRAPPED_ACTION`;
+
+interface WrappedAction<A> extends Action {
+  payload: A;
+  meta: {
+    [isWrappedAction]: true;
+  };
+}
+
+export type EnsureAction<A> = A extends Action ? A : WrappedAction<A>;
+
+export function wrappedAction<A>(action: A): WrappedAction<A> {
+  return {
+    type: `dispatch: ${JSON.stringify(action)}`,
+    payload: action,
+    meta: { [isWrappedAction]: true },
+  };
+}
+
+wrappedAction.match = (action: Action): action is WrappedAction<unknown> =>
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+  !!(action as any).meta?.[isWrappedAction];
+
+export function ensureAction<A>(action: A): EnsureAction<A> {
+  return (isAction(action) ? action : wrappedAction(action)) as never;
+}
+
+export function unwrapAction<A>(action: (Action & A) | WrappedAction<A>): A {
+  return wrappedAction.match(action) ? action.payload : action;
+}

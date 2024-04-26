@@ -1,22 +1,25 @@
 import type { Config } from "@redux-devtools/extension";
 import type { MutableRefObject, Reducer } from "react";
-import type { Action, IncomingMessageAction } from "../actions";
-import { incomingMessage } from "../actions";
+import type { EnsureAction, IncomingMessageAction } from "../actions";
+import { incomingMessage, isAction } from "../actions";
 import type { ActionState, StatusRefs } from "../types";
 import { messageReducer, processAction } from "./incoming";
 
 export const liftReducer =
-  <S, A extends Action>(
+  <S, A>(
     reducer: Reducer<S, A>,
     initialState: S,
     config: Config,
     statusRefs: MutableRefObject<StatusRefs>,
-  ): Reducer<ActionState<S, A>, A | IncomingMessageAction<S, A>> =>
+  ): Reducer<
+    ActionState<S, A>,
+    A | IncomingMessageAction<S, EnsureAction<A>>
+  > =>
   (state, action) => {
     const { locked, paused } = statusRefs.current;
     if (locked) return state;
 
-    if (incomingMessage.match<S, A>(action)) {
+    if (isAction(action) && incomingMessage.match<S, EnsureAction<A>>(action)) {
       return messageReducer(
         state,
         action.payload,

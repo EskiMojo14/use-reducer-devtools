@@ -2,22 +2,22 @@ import type { Config } from "@redux-devtools/extension";
 import type { LiftedState } from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer } from "react";
-import type { Action, IncomingMessage } from "../actions";
+import type { EnsureAction, IncomingMessage } from "../actions";
 import { ActionTypes, MessageTypes, UseReducerActions } from "../actions";
 import type { ActionState } from "../types";
 import { getToggledState, processActionCreators } from "../util";
 
-const shouldInitState = <S, A extends Action>(state: S): ActionState<S, A> => ({
+const shouldInitState = <S, A>(state: S): ActionState<S, A> => ({
   state,
   actions: [[{ type: UseReducerActions.INIT }, state]],
 });
 
-const clearActions = <S, A extends Action>(state: S): ActionState<S, A> => ({
+const clearActions = <S, A>(state: S): ActionState<S, A> => ({
   state,
   actions: [],
 });
 
-const withAction = <S, A extends Action>(
+const withAction = <S, A>(
   state: ActionState<S, A>,
   action: A,
   nextState: S,
@@ -26,7 +26,7 @@ const withAction = <S, A extends Action>(
   actions: [...state.actions, [action, nextState]],
 });
 
-export const processAction = <S, A extends Action>(
+export const processAction = <S, A>(
   reducer: Reducer<S, A>,
   state: ActionState<S, A>,
   action: A,
@@ -35,7 +35,7 @@ export const processAction = <S, A extends Action>(
   return withAction(state, action, nextState);
 };
 
-const toggleAction = <S, A extends Action>(
+const toggleAction = <S, A>(
   reducer: Reducer<S, A>,
   state: ActionState<S, A>,
   id: number,
@@ -57,9 +57,9 @@ const toggleAction = <S, A extends Action>(
   };
 };
 
-const importState = <S, A extends Action>(
+const importState = <S, A>(
   state: ActionState<S, A>,
-  nextLiftedState: LiftedState<S, A, unknown>,
+  nextLiftedState: LiftedState<S, EnsureAction<A>, unknown>,
 ): ActionState<S, A> => ({
   state: nextLiftedState.computedStates.slice(-1)[0]?.state ?? state.state,
   actions: [
@@ -68,9 +68,9 @@ const importState = <S, A extends Action>(
   ],
 });
 
-export const messageReducer = <S, A extends Action>(
+export const messageReducer = <S, A>(
   state: ActionState<S, A>,
-  message: IncomingMessage<S, A>,
+  message: IncomingMessage<S, EnsureAction<A>>,
   reducer: Reducer<S, A>,
   initialState: S,
   config: Config,

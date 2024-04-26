@@ -3,7 +3,7 @@ import type { LiftedState } from "@redux-devtools/instrument";
 import type { ActionCreatorObject } from "@redux-devtools/utils";
 import { getActionsArray } from "@redux-devtools/utils";
 import type { ActionCreator } from "redux";
-import type { Action } from "./actions";
+import { unwrapAction, type Action, type EnsureAction } from "./actions";
 
 const actionCreatorCache = new Map<string, Array<ActionCreatorObject>>();
 
@@ -30,13 +30,17 @@ export const processActionCreators = (
   return actionsArray;
 };
 
-export const getToggledState = <S, A extends Action>(
+export const getToggledState = <S, A>(
   reducer: (state: S, action: A) => S,
   state: S,
   id: number,
   strState: string,
 ) => {
-  const liftedState = JSON.parse(strState) as LiftedState<S, A, unknown>;
+  const liftedState = JSON.parse(strState) as LiftedState<
+    S,
+    EnsureAction<A>,
+    unknown
+  >;
   const idx = liftedState.skippedActionIds.indexOf(id);
   const skipped = idx !== -1;
   const start = liftedState.stagedActionIds.indexOf(id);
@@ -56,7 +60,9 @@ export const getToggledState = <S, A extends Action>(
       continue; // it's already skipped
     nextState = reducer(
       nextState,
-      liftedState.actionsById[liftedState.stagedActionIds[i]!].action,
+      unwrapAction(
+        liftedState.actionsById[liftedState.stagedActionIds[i]!]!.action,
+      ),
     );
     liftedState.computedStates[i]!.state = nextState;
   }
