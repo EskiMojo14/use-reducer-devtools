@@ -8,10 +8,6 @@ import type { Reducer, Dispatch, MutableRefObject } from "react";
 import { useEffect, useReducer, useRef } from "react";
 import { processActionCreators, toggleAction as getToggledState } from "./util";
 
-type ConnectResponse = ReturnType<
-  NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
->;
-
 let instanceId = 5000;
 function getInstanceId(configId?: number) {
   return configId ?? instanceId++;
@@ -33,6 +29,14 @@ function useReducerWithLazyState<S, A extends Action>(
   initialState: S | (() => S),
 ): [S, Dispatch<A>] {
   return useReducer(reducer, 0, () => getInitialState(initialState));
+}
+
+function useLazyRef<T>(value: T | (() => T)): MutableRefObject<T> {
+  const ref = useRef<T>();
+  if (ref.current === undefined) {
+    ref.current = isStateFunction(value) ? value() : value;
+  }
+  return ref as MutableRefObject<T>;
 }
 
 const ActionTypes = {
@@ -269,33 +273,36 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
   initialState: S | (() => S),
   config: Config & { instanceId?: number } = {},
 ): [S, Dispatch<A>] {
-  const instanceIdRef = useRef<number>();
-  if (instanceIdRef.current === undefined) {
-    instanceIdRef.current = getInstanceId(config.instanceId);
-  }
-  const connectionRef = useRef<ConnectResponse>();
-  if (
-    typeof window !== "undefined" &&
-    window.__REDUX_DEVTOOLS_EXTENSION__ &&
-    !connectionRef.current
-  ) {
-    connectionRef.current = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
-      ...config,
-      // @ts-expect-error undocumented
-      instanceId: instanceIdRef.current,
-    });
-    connectionRef.current.init(initialState);
-  }
+  const initialStateRef = useLazyRef(initialState);
+  const instanceIdRef = useLazyRef(() => getInstanceId(config.instanceId));
+  const connectionRef = useLazyRef(() => {
+    if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
+      const response = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
+        ...config,
+        // @ts-expect-error undocumented
+        instanceId: instanceIdRef.current,
+      });
+      response.init(initialStateRef.current);
+      return response;
+    }
+    return undefined;
+  });
 
   const recordingRef = useRef(config.shouldRecordChanges ?? true);
   const lockedRef = useRef(config.shouldStartLocked ?? false);
 
   const [{ state, actions }, dispatch] = useReducerWithLazyState(
-    liftReducer(reducer, initialState, config, recordingRef, lockedRef),
-    (): LiftedState<S, A> => ({
-      state: getInitialState(initialState),
+    liftReducer(
+      reducer,
+      initialStateRef.current,
+      config,
+      recordingRef,
+      lockedRef,
+    ),
+    {
+      state: initialStateRef.current,
       actions: [],
-    }),
+    },
   );
 
   useEffect(() => {
