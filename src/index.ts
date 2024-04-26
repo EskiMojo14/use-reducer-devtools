@@ -1,5 +1,9 @@
 import type { Config } from "@redux-devtools/extension";
-import type { LiftedAction, LiftedState } from "@redux-devtools/instrument";
+import type {
+  LiftedAction,
+  LiftedState,
+  ActionTypes as InstrumentActionTypes,
+} from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer, Dispatch, MutableRefObject } from "react";
 import { useDebugValue, useEffect, useReducer, useRef } from "react";
@@ -44,7 +48,7 @@ function useLazyRef<T extends NonNullable<unknown> | null>(
   return ref as MutableRefObject<T>;
 }
 
-const ActionTypes = {
+const ActionTypes: typeof InstrumentActionTypes = {
   PERFORM_ACTION: "PERFORM_ACTION",
   RESET: "RESET",
   ROLLBACK: "ROLLBACK",
