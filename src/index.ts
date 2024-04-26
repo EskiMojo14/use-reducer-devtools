@@ -2,7 +2,7 @@ import type { Config } from "@redux-devtools/extension";
 import type { LiftedAction, LiftedState } from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer, Dispatch, MutableRefObject } from "react";
-import { useEffect, useReducer, useRef } from "react";
+import { useDebugValue, useEffect, useReducer, useRef } from "react";
 import { processActionCreators, toggleAction as getToggledState } from "./util";
 
 let instanceId = 5000;
@@ -25,7 +25,11 @@ function useReducerWithLazyState<S, A extends Action>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
 ): [S, Dispatch<A>] {
-  return useReducer(reducer, 0, () => getInitialState(initialState));
+  const [state, dispatch] = useReducer(reducer, 0, () =>
+    getInitialState(initialState),
+  );
+  useDebugValue(state);
+  return [state, dispatch];
 }
 
 function useLazyRef<T>(value: T | (() => T)): MutableRefObject<T> {
@@ -343,6 +347,8 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
       }),
     [connectionRef, dispatch],
   );
+
+  useDebugValue(state);
 
   return [state, dispatch];
 }
