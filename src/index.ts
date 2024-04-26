@@ -286,8 +286,8 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
     return undefined;
   });
 
-  const pausedRef = useRef(config.shouldRecordChanges ?? true);
-  const lockedRef = useRef(config.shouldStartLocked ?? false);
+  const pausedRef = useRef(config.shouldRecordChanges === false);
+  const lockedRef = useRef(config.shouldStartLocked === true);
 
   const [{ state, actions }, dispatch] = useReducer(
     liftReducer(reducer, initialStateRef.current, config, pausedRef, lockedRef),
@@ -328,7 +328,6 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
             }
           | undefined
       )?.subscribe((message) => {
-        console.log(message);
         if (message.type === MessageTypes.DISPATCH) {
           switch (message.payload.type) {
             case ActionTypes.PAUSE_RECORDING:
