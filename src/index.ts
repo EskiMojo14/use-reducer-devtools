@@ -185,15 +185,14 @@ const messageReducer = <S, A extends Action>(
   state: LiftedState<S, A>,
   message: PostMessage<S, A>,
   reducer: Reducer<S, A>,
-  initialState: S | (() => S),
+  initialState: S,
   config: Config,
 ): LiftedState<S, A> => {
   switch (message.type) {
     case MessageTypes.DISPATCH: {
       switch (message.payload.type) {
         case ActionTypes.RESET: {
-          const state = getInitialState(initialState);
-          return shouldInitState(state);
+          return shouldInitState(initialState);
         }
         case ActionTypes.COMMIT: {
           return shouldInitState(state.state);
@@ -240,7 +239,7 @@ const messageReducer = <S, A extends Action>(
 const liftReducer =
   <S, A extends Action>(
     reducer: Reducer<S, A>,
-    initialState: S | (() => S),
+    initialState: S,
     config: Config,
     recordingRef: MutableRefObject<boolean>,
     lockedRef: MutableRefObject<boolean>,
