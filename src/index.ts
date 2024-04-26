@@ -328,16 +328,13 @@ function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
     let entry = actions.shift();
     while (entry) {
       const [action, state] = entry;
-      switch (action.type) {
-        case UseReducerActions.INIT:
-          connectionRef.current.init(state);
-          break;
-        case UseReducerActions.NULL:
-          connectionRef.current.send(null as never, state);
-          break;
-        default:
-          connectionRef.current.send(action, state);
-          break;
+      if (action.type === UseReducerActions.INIT) {
+        connectionRef.current.init(state);
+      } else {
+        connectionRef.current.send(
+          action.type === UseReducerActions.NULL ? (null as never) : action,
+          state,
+        );
       }
       entry = actions.shift();
     }
