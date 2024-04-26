@@ -1,15 +1,15 @@
 import type { Dispatch, MutableRefObject } from "react";
 import { useEffect } from "react";
 import type {
-  Action,
+  EnsureAction,
   IncomingMessage,
   IncomingMessageAction,
 } from "../actions";
 import { ActionTypes, MessageTypes, incomingMessage } from "../actions";
 import type { ConnectResponse, StatusRefs } from "../types";
 
-export function useIncomingActions<S, A extends Action>(
-  dispatch: Dispatch<IncomingMessageAction<S, A>>,
+export function useIncomingActions<S, A>(
+  dispatch: Dispatch<IncomingMessageAction<S, EnsureAction<A>>>,
   connectionRef: MutableRefObject<ConnectResponse | null>,
   statusRefs: MutableRefObject<StatusRefs>,
 ) {
@@ -18,7 +18,7 @@ export function useIncomingActions<S, A extends Action>(
       (
         connectionRef.current as unknown as {
           subscribe: (
-            listener: (message: IncomingMessage<S, A>) => void,
+            listener: (message: IncomingMessage<S, EnsureAction<A>>) => void,
           ) => () => void;
         } | null
       )?.subscribe((message) => {
