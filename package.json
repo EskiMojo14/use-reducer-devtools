@@ -51,7 +51,6 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.15.3",
-    "@redux-devtools/extension": "^3.3.0",
     "@redux-devtools/instrument": "^2.2.0",
     "@types/node": "^20.12.7",
     "@types/react": "^18",
@@ -78,6 +77,7 @@
     "react": ">=16.8.0"
   },
   "dependencies": {
+    "@redux-devtools/extension": "^3.3.0",
     "@redux-devtools/utils": "^3.0.0"
   }
 }
