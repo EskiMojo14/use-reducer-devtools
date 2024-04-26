@@ -326,13 +326,11 @@ function useIncomingActions<S, A extends Action>(
   useEffect(
     () =>
       (
-        connectionRef.current as unknown as
-          | {
-              subscribe: (
-                listener: (message: PostMessage<S, A>) => void,
-              ) => () => void;
-            }
-          | undefined
+        connectionRef.current as unknown as {
+          subscribe: (
+            listener: (message: PostMessage<S, A>) => void,
+          ) => () => void;
+        } | null
       )?.subscribe((message) => {
         switch (message.type) {
           case MessageTypes.START:
