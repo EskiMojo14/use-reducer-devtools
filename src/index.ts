@@ -198,7 +198,7 @@ const messageReducer = <S, A extends Action>(
           return shouldInitState(state.state);
         }
         case ActionTypes.ROLLBACK: {
-          return clearActions(JSON.parse(message.state) as S);
+          return shouldInitState(JSON.parse(message.state) as S);
         }
         case ActionTypes.JUMP_TO_STATE:
         case ActionTypes.JUMP_TO_ACTION: {
