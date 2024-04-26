@@ -7,10 +7,19 @@ import "./App.css";
 
 const counterSlice = createSlice({
   name: "counter",
-  initialState: 0,
+  initialState: { value: 0 },
   reducers: {
-    increment: (state) => state + 1,
-    decrement: (state) => state - 1,
+    increment(state) {
+      state.value += 1;
+    },
+    decrement(state) {
+      state.value -= 1;
+    },
+  },
+  extraReducers(builder) {
+    builder.addCase("custom!", (state) => {
+      state.value += 10;
+    });
   },
 });
 
@@ -20,6 +29,7 @@ function App() {
   const [count, dispatch] = useReducerWithDevtools(
     counterSlice.reducer,
     counterSlice.getInitialState,
+    { actionCreators: counterSlice.actions },
   );
 
   return (
@@ -34,7 +44,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <p>count is {count}</p>
+        <p>count is {count.value}</p>
         <button onClick={() => dispatch(increment())}>Increment</button>
         <button onClick={() => dispatch(decrement())}>Decrement</button>
         <p>
