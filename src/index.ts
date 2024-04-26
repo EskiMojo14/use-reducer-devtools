@@ -193,6 +193,7 @@ const messageReducer = <S, A extends Action>(
   reducer: Reducer<S, A>,
   initialState: S,
   config: Config,
+  pausedRef: MutableRefObject<boolean>,
 ): ActionState<S, A> => {
   switch (message.type) {
     case MessageTypes.DISPATCH: {
@@ -225,6 +226,12 @@ const messageReducer = <S, A extends Action>(
           }
           // TODO: legacy format? not sure what to do with that
           return state;
+        }
+        case ActionTypes.PAUSE_RECORDING: {
+          if (pausedRef.current) {
+            return state;
+          }
+          return shouldInitState(state.state);
         }
         default:
           return state;
@@ -260,6 +267,7 @@ const liftReducer =
         reducer,
         initialState,
         config,
+        pausedRef,
       );
     }
 
