@@ -71,7 +71,7 @@ type PostMessage<S, A extends Action> =
     }
   | {
       type: typeof MessageTypes.ACTION;
-      action: string;
+      payload: string;
     }
   | {
       type: typeof MessageTypes.START;
@@ -224,7 +224,7 @@ const messageReducer = <S, A extends Action>(
     }
     case MessageTypes.ACTION: {
       const action = evalAction(
-        message.action,
+        message.payload,
         processActionCreators(config.actionCreators),
       ) as A;
       return processAction(reducer, state, action);
