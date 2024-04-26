@@ -31,15 +31,13 @@ export const MessageTypes = {
 } as const;
 
 export type IncomingMessage<S, A extends Action> =
-  | {
-      type: typeof MessageTypes.DISPATCH;
+  | (Action<typeof MessageTypes.DISPATCH> & {
       payload: LiftedAction<S, A, unknown>;
       state: string;
-    }
-  | {
-      type: typeof MessageTypes.ACTION;
+    })
+  | (Action<typeof MessageTypes.ACTION> & {
       payload: string;
-    }
+    })
   | Action<typeof MessageTypes.START>
   | Action<typeof MessageTypes.STOP>;
 
