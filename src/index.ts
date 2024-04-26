@@ -31,7 +31,7 @@ function useReducerWithLazyState<S, A extends Action>(
 function useLazyRef<T>(value: T | (() => T)): MutableRefObject<T> {
   const ref = useRef<T>();
   if (ref.current === undefined) {
-    ref.current = isStateFunction(value) ? value() : value;
+    ref.current = getInitialState(value);
   }
   return ref as MutableRefObject<T>;
 }
