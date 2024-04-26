@@ -94,7 +94,7 @@ export function wrappedAction<A>(action: A): WrappedAction<A> {
   };
 }
 
-wrappedAction.match = <A>(action: Action): action is WrappedAction<A> =>
+wrappedAction.match = (action: Action): action is WrappedAction<unknown> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
   !!(action as any).meta?.[isWrappedAction];
 
