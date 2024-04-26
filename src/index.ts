@@ -399,7 +399,10 @@ function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
 
 export const useReducerWithProdDevtools = useReducerWithDevtoolsImpl;
 
+const shouldUseDevtools =
+  process.env.NODE_ENV === "development" &&
+  typeof window !== "undefined" &&
+  window.__REDUX_DEVTOOLS_EXTENSION__;
+
 export const useReducerWithDevtools: typeof useReducerWithDevtoolsImpl =
-  process.env.NODE_ENV === "development"
-    ? useReducerWithDevtoolsImpl
-    : useReducerWithLazyState;
+  shouldUseDevtools ? useReducerWithDevtoolsImpl : useReducerWithLazyState;
