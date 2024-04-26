@@ -9,8 +9,8 @@ import { useOutgoingActions } from "./outgoing";
 import { useLazyRef } from "./util";
 
 let instanceId = 5000;
-function getInstanceId(configId?: number) {
-  return configId ?? instanceId++;
+function getNextId() {
+  return instanceId++;
 }
 
 export function useReducerWithDevtools<
@@ -22,7 +22,7 @@ export function useReducerWithDevtools<
   config: Config & { instanceId?: number } = {},
 ): [S, Dispatch<A>] {
   const initialStateRef = useLazyRef(initialState);
-  const instanceIdRef = useLazyRef(() => getInstanceId(config.instanceId));
+  const instanceIdRef = useLazyRef(() => config.instanceId ?? getNextId());
   const connectionRef = useLazyRef(() => {
     if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
       const response = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
