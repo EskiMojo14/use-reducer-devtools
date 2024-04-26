@@ -1,8 +1,5 @@
 import type { Config } from "@redux-devtools/extension";
-import type {
-  LiftedAction,
-  LiftedState as DevtoolsLiftedState,
-} from "@redux-devtools/instrument";
+import type { LiftedAction, LiftedState } from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer, Dispatch, MutableRefObject } from "react";
 import { useEffect, useReducer, useRef } from "react";
@@ -109,51 +106,48 @@ postMessage.match = <S, A extends Action>(
 ): action is PostMessageAction<S, A> =>
   action.type === UseReducerActions.POST_MESSAGE;
 
-interface LiftedState<S, A extends Action> {
+interface ActionState<S, A extends Action> {
   state: S;
   actions: Array<
     | [A | Action<typeof UseReducerActions.INIT>, S]
-    | [
-        Action<typeof UseReducerActions.NULL>,
-        DevtoolsLiftedState<S, A, unknown>,
-      ]
+    | [Action<typeof UseReducerActions.NULL>, LiftedState<S, A, unknown>]
   >;
 }
 
-const shouldInitState = <S, A extends Action>(state: S): LiftedState<S, A> => ({
+const shouldInitState = <S, A extends Action>(state: S): ActionState<S, A> => ({
   state,
   actions: [[{ type: UseReducerActions.INIT }, state]],
 });
 
-const clearActions = <S, A extends Action>(state: S): LiftedState<S, A> => ({
+const clearActions = <S, A extends Action>(state: S): ActionState<S, A> => ({
   state,
   actions: [],
 });
 
 const withAction = <S, A extends Action>(
-  state: LiftedState<S, A>,
+  state: ActionState<S, A>,
   action: A,
   nextState: S,
-): LiftedState<S, A> => ({
+): ActionState<S, A> => ({
   state: nextState,
   actions: [...state.actions, [action, nextState]],
 });
 
 const processAction = <S, A extends Action>(
   reducer: Reducer<S, A>,
-  state: LiftedState<S, A>,
+  state: ActionState<S, A>,
   action: A,
-): LiftedState<S, A> => {
+): ActionState<S, A> => {
   const nextState = reducer(state.state, action);
   return withAction(state, action, nextState);
 };
 
 const toggleAction = <S, A extends Action>(
   reducer: Reducer<S, A>,
-  state: LiftedState<S, A>,
+  state: ActionState<S, A>,
   id: number,
   strState: string,
-): LiftedState<S, A> => {
+): ActionState<S, A> => {
   const { nextState, liftedState } = getToggledState(
     reducer,
     state.state,
@@ -171,9 +165,9 @@ const toggleAction = <S, A extends Action>(
 };
 
 const importState = <S, A extends Action>(
-  state: LiftedState<S, A>,
-  nextLiftedState: DevtoolsLiftedState<S, A, unknown>,
-): LiftedState<S, A> => ({
+  state: ActionState<S, A>,
+  nextLiftedState: LiftedState<S, A, unknown>,
+): ActionState<S, A> => ({
   state: nextLiftedState.computedStates.slice(-1)[0]?.state ?? state.state,
   actions: [
     ...state.actions,
@@ -182,12 +176,12 @@ const importState = <S, A extends Action>(
 });
 
 const messageReducer = <S, A extends Action>(
-  state: LiftedState<S, A>,
+  state: ActionState<S, A>,
   message: PostMessage<S, A>,
   reducer: Reducer<S, A>,
   initialState: S,
   config: Config,
-): LiftedState<S, A> => {
+): ActionState<S, A> => {
   switch (message.type) {
     case MessageTypes.DISPATCH: {
       switch (message.payload.type) {
@@ -243,7 +237,7 @@ const liftReducer =
     config: Config,
     recordingRef: MutableRefObject<boolean>,
     lockedRef: MutableRefObject<boolean>,
-  ): Reducer<LiftedState<S, A>, A | PostMessageAction<S, A>> =>
+  ): Reducer<ActionState<S, A>, A | PostMessageAction<S, A>> =>
   (state, action) => {
     if (lockedRef.current) return state;
 
@@ -322,7 +316,7 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
       }
       entry = actions.shift();
     }
-  }, [actions]);
+  }, [actions, connectionRef]);
 
   useEffect(
     () =>
@@ -345,7 +339,7 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
         }
         dispatch(postMessage(message));
       }),
-    [dispatch],
+    [connectionRef, dispatch],
   );
 
   return [state, dispatch];
