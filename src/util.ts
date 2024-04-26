@@ -30,7 +30,7 @@ export const processActionCreators = (
   return actionsArray;
 };
 
-export const toggleAction = <S, A extends Action>(
+export const getToggledState = <S, A extends Action>(
   reducer: (state: S, action: A) => S,
   state: S,
   id: number,
