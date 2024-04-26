@@ -10,6 +10,8 @@ function getInstanceId(configId?: number) {
   return configId ?? instanceId++;
 }
 
+type NotUndefined = NonNullable<unknown> | null;
+
 export interface Action<T extends string = string> {
   type: T;
 }
@@ -32,7 +34,9 @@ function useReducerWithLazyState<S, A extends Action>(
   return [state, dispatch];
 }
 
-function useLazyRef<T>(value: T | (() => T)): MutableRefObject<T> {
+function useLazyRef<T extends NonNullable<unknown> | null>(
+  value: T | (() => T),
+): MutableRefObject<T> {
   const ref = useRef<T>();
   if (ref.current === undefined) {
     ref.current = getInitialState(value);
@@ -265,7 +269,7 @@ const liftReducer =
     return processAction(reducer, state, action);
   };
 
-function useReducerWithDevtoolsImpl<S, A extends Action>(
+function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
   config: Config & { instanceId?: number } = {},
@@ -283,7 +287,7 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
       response.init(initialStateRef.current);
       return response;
     }
-    return undefined;
+    return null;
   });
 
   const pausedRef = useRef(config.shouldRecordChanges === false);
