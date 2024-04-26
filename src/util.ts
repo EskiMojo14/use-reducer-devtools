@@ -3,7 +3,7 @@ import type { LiftedState } from "@redux-devtools/instrument";
 import type { ActionCreatorObject } from "@redux-devtools/utils";
 import { getActionsArray } from "@redux-devtools/utils";
 import type { ActionCreator } from "redux";
-import type { Action } from ".";
+import type { Action } from "./actions";
 
 const actionCreatorCache = new Map<string, Array<ActionCreatorObject>>();
 
@@ -42,7 +42,7 @@ export const toggleAction = <S, A extends Action>(
   const start = liftedState.stagedActionIds.indexOf(id);
   if (start === -1) return { nextState: state, liftedState };
 
-  let nextState = state;
+  let nextState = liftedState.computedStates[start - 1]!.state;
 
   for (
     let i = skipped ? start : start + 1;

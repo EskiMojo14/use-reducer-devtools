@@ -1,142 +1,24 @@
 import type { Config } from "@redux-devtools/extension";
-import type {
-  LiftedAction,
-  LiftedState,
-  ActionTypes as InstrumentActionTypes,
-} from "@redux-devtools/instrument";
+import type { LiftedState } from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer, Dispatch, MutableRefObject } from "react";
-import { useDebugValue, useEffect, useReducer, useRef } from "react";
+import { useDebugValue, useReducer, useRef } from "react";
+import type { Action, IncomingMessage, IncomingMessageAction } from "./actions";
+import {
+  ActionTypes,
+  MessageTypes,
+  UseReducerActions,
+  incomingMessage,
+} from "./actions";
+import { useIncomingActions } from "./hooks/incoming";
+import { useOutgoingActions } from "./hooks/outgoing";
+import { useLazyRef, useReducerWithLazyState } from "./hooks/util";
+import type { ActionState, NotUndefined, StatusRefs } from "./types";
 import { processActionCreators, toggleAction as getToggledState } from "./util";
-
-type ConnectResponse = ReturnType<
-  NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
->;
 
 let instanceId = 5000;
 function getInstanceId(configId?: number) {
   return configId ?? instanceId++;
-}
-
-type NotUndefined = NonNullable<unknown> | null;
-
-export interface Action<T extends string = string> {
-  type: T;
-}
-
-function isStateFunction<S>(state: S | (() => S)): state is () => S {
-  return typeof state === "function";
-}
-
-const getInitialState = <S>(initialState: S | (() => S)): S =>
-  isStateFunction(initialState) ? initialState() : initialState;
-
-const useDevDebugValue: typeof useDebugValue =
-  process.env.NODE_ENV === "development" ? useDebugValue : () => {};
-
-function useReducerWithLazyState<S, A extends Action>(
-  reducer: Reducer<S, A>,
-  initialState: S | (() => S),
-): [S, Dispatch<A>] {
-  const [state, dispatch] = useReducer(reducer, 0, () =>
-    getInitialState(initialState),
-  );
-  useDebugValue(state);
-  return [state, dispatch];
-}
-
-function useLazyRef<T extends NonNullable<unknown> | null>(
-  value: T | (() => T),
-): MutableRefObject<T> {
-  const ref = useRef<T>();
-  if (ref.current === undefined) {
-    ref.current = getInitialState(value);
-  }
-  useDevDebugValue(ref.current);
-  return ref as MutableRefObject<T>;
-}
-const ActionTypes: typeof InstrumentActionTypes = {
-  PERFORM_ACTION: "PERFORM_ACTION",
-  RESET: "RESET",
-  ROLLBACK: "ROLLBACK",
-  COMMIT: "COMMIT",
-  SWEEP: "SWEEP",
-  TOGGLE_ACTION: "TOGGLE_ACTION",
-  SET_ACTIONS_ACTIVE: "SET_ACTIONS_ACTIVE",
-  JUMP_TO_STATE: "JUMP_TO_STATE",
-  JUMP_TO_ACTION: "JUMP_TO_ACTION",
-  REORDER_ACTION: "REORDER_ACTION",
-  IMPORT_STATE: "IMPORT_STATE",
-  LOCK_CHANGES: "LOCK_CHANGES",
-  PAUSE_RECORDING: "PAUSE_RECORDING",
-} as const;
-
-const MessageTypes = {
-  DISPATCH: "DISPATCH",
-  ACTION: "ACTION",
-  START: "START",
-  STOP: "STOP",
-} as const;
-
-type PostMessage<S, A extends Action> =
-  | {
-      type: typeof MessageTypes.DISPATCH;
-      payload: LiftedAction<S, A, unknown>;
-      state: string;
-    }
-  | {
-      type: typeof MessageTypes.ACTION;
-      payload: string;
-    }
-  | {
-      type: typeof MessageTypes.START;
-    }
-  | {
-      type: typeof MessageTypes.STOP;
-    };
-
-const prefix = "@@USE_REDUCER_WITH_DEVTOOLS";
-
-const UseReducerActions = {
-  /** A message received from the devtools connection */
-  POST_MESSAGE: `${prefix}/POST_MESSAGE`,
-  /** We should call .init */
-  INIT: `${prefix}/INIT`,
-  /** special case - send should be called with null */
-  NULL: `${prefix}/NULL`,
-} as const;
-
-interface PostMessageAction<S, A extends Action> {
-  type: typeof UseReducerActions.POST_MESSAGE;
-  payload: PostMessage<S, A>;
-}
-
-function postMessage<S, A extends Action>(
-  message: PostMessage<S, A>,
-): PostMessageAction<S, A> {
-  return {
-    type: UseReducerActions.POST_MESSAGE,
-    payload: message,
-  };
-}
-
-postMessage.match = <S, A extends Action>(
-  action: Action,
-): action is PostMessageAction<S, A> =>
-  action.type === UseReducerActions.POST_MESSAGE;
-
-interface ActionState<S, A extends Action> {
-  state: S;
-  actions: Array<
-    | [A | Action<typeof UseReducerActions.INIT>, S]
-    | [Action<typeof UseReducerActions.NULL>, LiftedState<S, A, unknown>]
-  >;
-}
-
-interface StatusRefs {
-  paused: boolean;
-  locked: boolean;
-  subscribed: boolean;
 }
 
 const shouldInitState = <S, A extends Action>(state: S): ActionState<S, A> => ({
@@ -202,7 +84,7 @@ const importState = <S, A extends Action>(
 
 const messageReducer = <S, A extends Action>(
   state: ActionState<S, A>,
-  message: PostMessage<S, A>,
+  message: IncomingMessage<S, A>,
   reducer: Reducer<S, A>,
   initialState: S,
   config: Config,
@@ -269,12 +151,12 @@ const liftReducer =
     initialState: S,
     config: Config,
     statusRefs: MutableRefObject<StatusRefs>,
-  ): Reducer<ActionState<S, A>, A | PostMessageAction<S, A>> =>
+  ): Reducer<ActionState<S, A>, A | IncomingMessageAction<S, A>> =>
   (state, action) => {
     const { locked, paused } = statusRefs.current;
     if (locked) return state;
 
-    if (postMessage.match<S, A>(action)) {
+    if (incomingMessage.match<S, A>(action)) {
       return messageReducer(
         state,
         action.payload,
@@ -294,65 +176,6 @@ const liftReducer =
 
     return processAction(reducer, state, action);
   };
-
-function useOutgoingActions<S, A extends Action>(
-  actions: ActionState<S, A>["actions"],
-  dispatch: Dispatch<A>,
-  connectionRef: MutableRefObject<ConnectResponse | null>,
-) {
-  useEffect(() => {
-    if (!connectionRef.current) return;
-    let entry = actions.shift();
-    while (entry) {
-      const [action, state] = entry;
-      if (action.type === UseReducerActions.INIT) {
-        connectionRef.current.init(state);
-      } else {
-        connectionRef.current.send(
-          action.type === UseReducerActions.NULL ? (null as never) : action,
-          state,
-        );
-      }
-      entry = actions.shift();
-    }
-  }, [actions, connectionRef, dispatch]);
-}
-
-function useIncomingActions<S, A extends Action>(
-  dispatch: Dispatch<A | PostMessageAction<S, A>>,
-  connectionRef: MutableRefObject<ConnectResponse | null>,
-  statusRefs: MutableRefObject<StatusRefs>,
-) {
-  useEffect(
-    () =>
-      (
-        connectionRef.current as unknown as {
-          subscribe: (
-            listener: (message: PostMessage<S, A>) => void,
-          ) => () => void;
-        } | null
-      )?.subscribe((message) => {
-        switch (message.type) {
-          case MessageTypes.START:
-          case MessageTypes.STOP:
-            statusRefs.current.subscribed = message.type === MessageTypes.START;
-            return;
-          case MessageTypes.DISPATCH:
-            switch (message.payload.type) {
-              case ActionTypes.PAUSE_RECORDING:
-                statusRefs.current.paused = message.payload.status;
-                break;
-              case ActionTypes.LOCK_CHANGES:
-                statusRefs.current.locked = message.payload.status;
-                break;
-            }
-            break;
-        }
-        dispatch(postMessage(message));
-      }),
-    [connectionRef, dispatch, statusRefs],
-  );
-}
 
 function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
   reducer: Reducer<S, A>,
