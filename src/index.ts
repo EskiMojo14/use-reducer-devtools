@@ -296,18 +296,14 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
   useEffect(
     () =>
       devtools.subscribe((message: PostMessage<S, A>) => {
-        switch (message.type) {
-          case MessageTypes.DISPATCH: {
-            switch (message.payload.type) {
-              case ActionTypes.PAUSE_RECORDING:
-                recordingRef.current = message.payload.status;
-                break;
-              case ActionTypes.LOCK_CHANGES:
-                lockedRef.current = message.payload.status;
-                break;
-              default:
-                break;
-            }
+        if (message.type === MessageTypes.DISPATCH) {
+          switch (message.payload.type) {
+            case ActionTypes.PAUSE_RECORDING:
+              recordingRef.current = message.payload.status;
+              break;
+            case ActionTypes.LOCK_CHANGES:
+              lockedRef.current = message.payload.status;
+              break;
           }
         }
         dispatch(postMessage(message));
