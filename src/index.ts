@@ -9,6 +9,10 @@ import type { Reducer, Dispatch, MutableRefObject } from "react";
 import { useDebugValue, useEffect, useReducer, useRef } from "react";
 import { processActionCreators, toggleAction as getToggledState } from "./util";
 
+type ConnectResponse = ReturnType<
+  NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
+>;
+
 let instanceId = 5000;
 function getInstanceId(configId?: number) {
   return configId ?? instanceId++;
@@ -291,9 +295,7 @@ const liftReducer =
 function useOutgoingActions<S, A extends Action>(
   actions: ActionState<S, A>["actions"],
   dispatch: Dispatch<A>,
-  connectionRef: MutableRefObject<ReturnType<
-    NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
-  > | null>,
+  connectionRef: MutableRefObject<ConnectResponse | null>,
 ) {
   useEffect(() => {
     if (!connectionRef.current) return;
@@ -315,9 +317,7 @@ function useOutgoingActions<S, A extends Action>(
 
 function useIncomingActions<S, A extends Action>(
   dispatch: Dispatch<A | PostMessageAction<S, A>>,
-  connectionRef: MutableRefObject<ReturnType<
-    NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
-  > | null>,
+  connectionRef: MutableRefObject<ConnectResponse | null>,
   statusRefs: MutableRefObject<StatusRefs>,
 ) {
   useEffect(
