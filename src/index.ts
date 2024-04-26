@@ -284,7 +284,7 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
   const recordingRef = useRef(config.shouldRecordChanges ?? true);
   const lockedRef = useRef(config.shouldStartLocked ?? false);
 
-  const [{ state, actions }, dispatch] = useReducerWithLazyState(
+  const [{ state, actions }, dispatch] = useReducer(
     liftReducer(
       reducer,
       initialStateRef.current,
