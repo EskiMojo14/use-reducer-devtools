@@ -4,6 +4,7 @@ import { useReducerWithDevtools } from "use-reducer-devtools";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
+import { SetStateAction } from "react";
 
 const counterSlice = createSlice({
   name: "counter",
@@ -40,6 +41,18 @@ function App() {
     { actionCreators: { increaseBy: (amount: number) => amount } },
   );
 
+  const [hidden, setHidden] = useReducerWithDevtools(
+    (state: boolean, action: SetStateAction<boolean>) =>
+      typeof action === "function" ? action(state) : action,
+    false,
+    {
+      actionCreators: {
+        setHidden: (hidden: boolean) => hidden,
+        toggleHidden: () => (prev: boolean) => !prev,
+      },
+    },
+  );
+
   return (
     <>
       <div>
@@ -63,6 +76,10 @@ function App() {
         <p>countUp is {countUp}</p>
         <button onClick={() => increaseBy(10)}>Increase by 10</button>
         <button onClick={() => increaseBy(-5)}>Decrease by 5</button>
+      </div>
+      <div className="card">
+        <p>hidden is {hidden.toString()}</p>
+        <button onClick={() => setHidden((prev) => !prev)}>Toggle</button>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more

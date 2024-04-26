@@ -88,7 +88,7 @@ export type EnsureAction<A> = A extends Action ? A : WrappedAction<A>;
 
 export function wrappedAction<A>(action: A): WrappedAction<A> {
   return {
-    type: `dispatch: ${JSON.stringify(action)}`,
+    type: `dispatch: ${typeof action === "function" ? action.toString() : JSON.stringify(action)}`,
     payload: action,
     meta: { [isWrappedAction]: true },
   };
