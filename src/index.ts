@@ -288,6 +288,71 @@ const liftReducer =
     return processAction(reducer, state, action);
   };
 
+function useOutgoingActions<S, A extends Action>(
+  actions: ActionState<S, A>["actions"],
+  dispatch: Dispatch<A>,
+  connectionRef: MutableRefObject<ReturnType<
+    NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
+  > | null>,
+) {
+  useEffect(() => {
+    if (!connectionRef.current) return;
+    let entry = actions.shift();
+    while (entry) {
+      const [action, state] = entry;
+      if (action.type === UseReducerActions.INIT) {
+        connectionRef.current.init(state);
+      } else {
+        connectionRef.current.send(
+          action.type === UseReducerActions.NULL ? (null as never) : action,
+          state,
+        );
+      }
+      entry = actions.shift();
+    }
+  }, [actions, connectionRef, dispatch]);
+}
+
+function useIncomingActions<S, A extends Action>(
+  dispatch: Dispatch<A | PostMessageAction<S, A>>,
+  connectionRef: MutableRefObject<ReturnType<
+    NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
+  > | null>,
+  statusRefs: MutableRefObject<StatusRefs>,
+) {
+  useEffect(
+    () =>
+      (
+        connectionRef.current as unknown as
+          | {
+              subscribe: (
+                listener: (message: PostMessage<S, A>) => void,
+              ) => () => void;
+            }
+          | undefined
+      )?.subscribe((message) => {
+        switch (message.type) {
+          case MessageTypes.START:
+          case MessageTypes.STOP:
+            statusRefs.current.subscribed = message.type === MessageTypes.START;
+            return;
+          case MessageTypes.DISPATCH:
+            switch (message.payload.type) {
+              case ActionTypes.PAUSE_RECORDING:
+                statusRefs.current.paused = message.payload.status;
+                break;
+              case ActionTypes.LOCK_CHANGES:
+                statusRefs.current.locked = message.payload.status;
+                break;
+            }
+            break;
+        }
+        dispatch(postMessage(message));
+      }),
+    [connectionRef, dispatch, statusRefs],
+  );
+}
+
 function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
@@ -323,54 +388,9 @@ function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
     },
   );
 
-  useEffect(() => {
-    if (!connectionRef.current) return;
-    let entry = actions.shift();
-    while (entry) {
-      const [action, state] = entry;
-      if (action.type === UseReducerActions.INIT) {
-        connectionRef.current.init(state);
-      } else {
-        connectionRef.current.send(
-          action.type === UseReducerActions.NULL ? (null as never) : action,
-          state,
-        );
-      }
-      entry = actions.shift();
-    }
-  }, [actions, connectionRef]);
+  useOutgoingActions(actions, dispatch, connectionRef);
 
-  useEffect(
-    () =>
-      (
-        connectionRef.current as unknown as
-          | {
-              subscribe: (
-                listener: (message: PostMessage<S, A>) => void,
-              ) => () => void;
-            }
-          | undefined
-      )?.subscribe((message) => {
-        switch (message.type) {
-          case MessageTypes.START:
-          case MessageTypes.STOP:
-            statusRefs.current.subscribed = message.type === MessageTypes.START;
-            return;
-          case MessageTypes.DISPATCH:
-            switch (message.payload.type) {
-              case ActionTypes.PAUSE_RECORDING:
-                statusRefs.current.paused = message.payload.status;
-                break;
-              case ActionTypes.LOCK_CHANGES:
-                statusRefs.current.locked = message.payload.status;
-                break;
-            }
-            break;
-        }
-        dispatch(postMessage(message));
-      }),
-    [connectionRef, dispatch],
-  );
+  useIncomingActions(dispatch, connectionRef, statusRefs);
 
   useDebugValue(state);
 
