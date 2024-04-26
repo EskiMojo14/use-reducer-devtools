@@ -31,6 +31,9 @@ function isStateFunction<S>(state: S | (() => S)): state is () => S {
 const getInitialState = <S>(initialState: S | (() => S)): S =>
   isStateFunction(initialState) ? initialState() : initialState;
 
+const useDevDebugValue: typeof useDebugValue =
+  process.env.NODE_ENV === "development" ? useDebugValue : () => {};
+
 function useReducerWithLazyState<S, A extends Action>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
@@ -49,9 +52,9 @@ function useLazyRef<T extends NonNullable<unknown> | null>(
   if (ref.current === undefined) {
     ref.current = getInitialState(value);
   }
+  useDevDebugValue(ref.current);
   return ref as MutableRefObject<T>;
 }
-
 const ActionTypes: typeof InstrumentActionTypes = {
   PERFORM_ACTION: "PERFORM_ACTION",
   RESET: "RESET",
@@ -364,7 +367,8 @@ function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
     if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
       const response = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
         ...config,
-        name: config.name ?? "useReducerWithDevtools",
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        name: config.name ?? `useReducerWithDevtools ${instanceIdRef.current}`,
         // @ts-expect-error undocumented
         instanceId: instanceIdRef.current,
       });
