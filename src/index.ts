@@ -276,6 +276,7 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
     if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
       const response = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
         ...config,
+        name: config.name ?? "useReducerWithDevtools",
         // @ts-expect-error undocumented
         instanceId: instanceIdRef.current,
       });
