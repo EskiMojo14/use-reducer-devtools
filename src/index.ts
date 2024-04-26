@@ -126,6 +126,12 @@ interface ActionState<S, A extends Action> {
   >;
 }
 
+interface StatusRefs {
+  paused: boolean;
+  locked: boolean;
+  subscribed: boolean;
+}
+
 const shouldInitState = <S, A extends Action>(state: S): ActionState<S, A> => ({
   state,
   actions: [[{ type: UseReducerActions.INIT }, state]],
@@ -193,7 +199,7 @@ const messageReducer = <S, A extends Action>(
   reducer: Reducer<S, A>,
   initialState: S,
   config: Config,
-  pausedRef: MutableRefObject<boolean>,
+  paused: boolean,
 ): ActionState<S, A> => {
   switch (message.type) {
     case MessageTypes.DISPATCH: {
@@ -228,7 +234,8 @@ const messageReducer = <S, A extends Action>(
           return state;
         }
         case ActionTypes.PAUSE_RECORDING: {
-          if (pausedRef.current) {
+          // paused here has already updated
+          if (paused) {
             return state;
           }
           return shouldInitState(state.state);
@@ -254,11 +261,11 @@ const liftReducer =
     reducer: Reducer<S, A>,
     initialState: S,
     config: Config,
-    pausedRef: MutableRefObject<boolean>,
-    lockedRef: MutableRefObject<boolean>,
+    statusRefs: MutableRefObject<StatusRefs>,
   ): Reducer<ActionState<S, A>, A | PostMessageAction<S, A>> =>
   (state, action) => {
-    if (lockedRef.current) return state;
+    const { locked, paused } = statusRefs.current;
+    if (locked) return state;
 
     if (postMessage.match<S, A>(action)) {
       return messageReducer(
@@ -267,11 +274,11 @@ const liftReducer =
         reducer,
         initialState,
         config,
-        pausedRef,
+        paused,
       );
     }
 
-    if (pausedRef.current) {
+    if (paused) {
       return {
         state: reducer(state.state, action),
         actions: state.actions,
@@ -302,11 +309,14 @@ function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
     return null;
   });
 
-  const pausedRef = useRef(config.shouldRecordChanges === false);
-  const lockedRef = useRef(config.shouldStartLocked === true);
+  const statusRefs = useRef<StatusRefs>({
+    paused: config.shouldRecordChanges === false,
+    locked: config.shouldStartLocked === true,
+    subscribed: false,
+  });
 
   const [{ state, actions }, dispatch] = useReducer(
-    liftReducer(reducer, initialStateRef.current, config, pausedRef, lockedRef),
+    liftReducer(reducer, initialStateRef.current, config, statusRefs),
     {
       state: initialStateRef.current,
       actions: [],
@@ -344,15 +354,21 @@ function useReducerWithDevtoolsImpl<S extends NotUndefined, A extends Action>(
             }
           | undefined
       )?.subscribe((message) => {
-        if (message.type === MessageTypes.DISPATCH) {
-          switch (message.payload.type) {
-            case ActionTypes.PAUSE_RECORDING:
-              pausedRef.current = message.payload.status;
-              break;
-            case ActionTypes.LOCK_CHANGES:
-              lockedRef.current = message.payload.status;
-              break;
-          }
+        switch (message.type) {
+          case MessageTypes.START:
+          case MessageTypes.STOP:
+            statusRefs.current.subscribed = message.type === MessageTypes.START;
+            return;
+          case MessageTypes.DISPATCH:
+            switch (message.payload.type) {
+              case ActionTypes.PAUSE_RECORDING:
+                statusRefs.current.paused = message.payload.status;
+                break;
+              case ActionTypes.LOCK_CHANGES:
+                statusRefs.current.locked = message.payload.status;
+                break;
+            }
+            break;
         }
         dispatch(postMessage(message));
       }),
