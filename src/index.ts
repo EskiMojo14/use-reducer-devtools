@@ -321,12 +321,14 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
   useEffect(
     () =>
       (
-        connectionRef.current as unknown as {
-          subscribe: (
-            listener: (message: PostMessage<S, A>) => void,
-          ) => () => void;
-        }
-      ).subscribe((message) => {
+        connectionRef.current as unknown as
+          | {
+              subscribe: (
+                listener: (message: PostMessage<S, A>) => void,
+              ) => () => void;
+            }
+          | undefined
+      )?.subscribe((message) => {
         if (message.type === MessageTypes.DISPATCH) {
           switch (message.payload.type) {
             case ActionTypes.PAUSE_RECORDING:
