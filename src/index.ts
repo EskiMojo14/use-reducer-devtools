@@ -8,12 +8,18 @@ import type { Reducer, Dispatch, MutableRefObject } from "react";
 import { useEffect, useReducer, useRef } from "react";
 import { processActionCreators, toggleAction as getToggledState } from "./util";
 
+type ConnectResponse = ReturnType<
+  NonNullable<Window["__REDUX_DEVTOOLS_EXTENSION__"]>["connect"]
+>;
+
+let instanceId = 5000;
+function getInstanceId(configId?: number) {
+  return configId ?? instanceId++;
+}
+
 export interface Action<T extends string = string> {
   type: T;
 }
-
-// TODO: make actual connection
-declare const devtools: any;
 
 function isStateFunction<S>(state: S | (() => S)): state is () => S {
   return typeof state === "function";
@@ -104,7 +110,7 @@ interface LiftedState<S, A extends Action> {
   actions: Array<
     | [A | Action<typeof UseReducerActions.INIT>, S]
     | [
-        Action<typeof UseReducerActions.IMPORT_STATE>,
+        Action<typeof UseReducerActions.NULL>,
         DevtoolsLiftedState<S, A, unknown>,
       ]
   >;
@@ -261,8 +267,26 @@ const liftReducer =
 function useReducerWithDevtoolsImpl<S, A extends Action>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
-  config: Config = {},
+  config: Config & { instanceId?: number } = {},
 ): [S, Dispatch<A>] {
+  const instanceIdRef = useRef<number>();
+  if (instanceIdRef.current === undefined) {
+    instanceIdRef.current = getInstanceId(config.instanceId);
+  }
+  const connectionRef = useRef<ConnectResponse>();
+  if (
+    typeof window !== "undefined" &&
+    window.__REDUX_DEVTOOLS_EXTENSION__ &&
+    !connectionRef.current
+  ) {
+    connectionRef.current = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
+      ...config,
+      // @ts-expect-error undocumented
+      instanceId: instanceIdRef.current,
+    });
+    connectionRef.current.init(initialState);
+  }
+
   const recordingRef = useRef(config.shouldRecordChanges ?? true);
   const lockedRef = useRef(config.shouldStartLocked ?? false);
 
@@ -275,18 +299,19 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
   );
 
   useEffect(() => {
+    if (!connectionRef.current) return;
     let entry = actions.shift();
     while (entry) {
       const [action, state] = entry;
       switch (action.type) {
         case UseReducerActions.INIT:
-          devtools.init(state);
+          connectionRef.current.init(state);
           break;
         case UseReducerActions.NULL:
-          devtools.send(null, state);
+          connectionRef.current.send(null as never, state);
           break;
         default:
-          devtools.send(action, state);
+          connectionRef.current.send(action, state);
           break;
       }
       entry = actions.shift();
@@ -295,7 +320,13 @@ function useReducerWithDevtoolsImpl<S, A extends Action>(
 
   useEffect(
     () =>
-      devtools.subscribe((message: PostMessage<S, A>) => {
+      (
+        connectionRef.current as unknown as {
+          subscribe: (
+            listener: (message: PostMessage<S, A>) => void,
+          ) => () => void;
+        }
+      ).subscribe((message) => {
         if (message.type === MessageTypes.DISPATCH) {
           switch (message.payload.type) {
             case ActionTypes.PAUSE_RECORDING:
