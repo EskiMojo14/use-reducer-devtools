@@ -51,8 +51,7 @@ export const toggleAction = <S, A extends Action>(
   ) {
     if (
       i !== start &&
-      liftedState.skippedActionIds.indexOf(liftedState.stagedActionIds[i]!) !==
-        -1
+      liftedState.skippedActionIds.includes(liftedState.stagedActionIds[i]!)
     )
       continue; // it's already skipped
     nextState = reducer(
