@@ -41,6 +41,7 @@ function App() {
     { actionCreators: { increaseBy: (amount: number) => amount } },
   );
 
+  // function actions - will be logged but cannot time-travel debug
   const [hidden, setHidden] = useReducerWithDevtools(
     (state: boolean, action: SetStateAction<boolean>) =>
       typeof action === "function" ? action(state) : action,
