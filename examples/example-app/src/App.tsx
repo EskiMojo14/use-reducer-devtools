@@ -28,28 +28,32 @@ const { increment, decrement } = counterSlice.actions;
 
 function App() {
   // redux-style actions
-  const [count, dispatch] = useReducerWithDevtools(
+  const [reduxCount, dispatch] = useReducerWithDevtools(
     counterSlice.reducer,
     counterSlice.getInitialState,
-    { actionCreators: counterSlice.actions },
+    { name: "Redux style count slice", actionCreators: counterSlice.actions },
   );
 
   // custom actions - in this case, just a number
-  const [countUp, increaseBy] = useReducerWithDevtools(
+  const [sumCount, increaseCount] = useReducerWithDevtools(
     (state: number, action: number) => state + action,
     0,
-    { actionCreators: { increaseBy: (amount: number) => amount } },
+    {
+      name: "countUp reducer",
+      actionCreators: { increaseCount: (amount: number) => amount },
+    },
   );
 
   // function actions - will be logged but cannot time-travel debug
-  const [hidden, setHidden] = useReducerWithDevtools(
-    (state: boolean, action: SetStateAction<boolean>) =>
+  const [settableCount, setCount] = useReducerWithDevtools(
+    (state: number, action: SetStateAction<number>) =>
       typeof action === "function" ? action(state) : action,
-    false,
+    0,
     {
+      name: "setState style reducer",
       actionCreators: {
-        setHidden: (hidden: boolean) => hidden,
-        toggleHidden: () => (prev: boolean) => !prev,
+        setCount: (amount: number) => amount,
+        increaseCount: (amount: number) => (state: number) => state + amount,
       },
     },
   );
@@ -66,7 +70,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <p>count is {count.value}</p>
+        <p>count is {reduxCount.value}</p>
         <button onClick={() => dispatch(increment())}>Increment</button>
         <button onClick={() => dispatch(decrement())}>Decrement</button>
         <p>
@@ -74,13 +78,16 @@ function App() {
         </p>
       </div>
       <div className="card">
-        <p>countUp is {countUp}</p>
-        <button onClick={() => increaseBy(10)}>Increase by 10</button>
-        <button onClick={() => increaseBy(-5)}>Decrease by 5</button>
+        <p>countUp is {sumCount}</p>
+        <button onClick={() => increaseCount(10)}>Increase by 10</button>
+        <button onClick={() => increaseCount(-5)}>Decrease by 5</button>
       </div>
       <div className="card">
-        <p>hidden is {hidden.toString()}</p>
-        <button onClick={() => setHidden((prev) => !prev)}>Toggle</button>
+        <p>settableCount is {settableCount}</p>
+        <button onClick={() => setCount(10)}>Set to 10</button>
+        <button onClick={() => setCount((state) => state + 5)}>
+          Increase by 5
+        </button>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
