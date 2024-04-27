@@ -16,7 +16,7 @@ if (
   typeof window !== "undefined" &&
   window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ === undefined
 ) {
-  window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ = 0;
+  window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ = 5000;
 }
 function getNextId() {
   if (
