@@ -6,9 +6,25 @@ import { useIncomingActions } from "./incoming";
 import { useOutgoingActions } from "./outgoing";
 import { useLazyRef } from "./util";
 
-let instanceId = 5000;
+declare global {
+  interface Window {
+    __USE_REDUCER_DEVTOOLS_INSTANCE_ID__?: number;
+  }
+}
+
+if (
+  typeof window !== "undefined" &&
+  window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ === undefined
+) {
+  window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ = 0;
+}
 function getNextId() {
-  return instanceId++;
+  if (
+    typeof window === "undefined" ||
+    typeof window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ === "undefined"
+  )
+    return 0; // no window = no devtools
+  return window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__++;
 }
 
 export function useReducerWithDevtools<S extends NotUndefined, A>(
