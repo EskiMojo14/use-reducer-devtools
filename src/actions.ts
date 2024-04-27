@@ -75,33 +75,50 @@ export function isAction(action: unknown): action is Action {
   return typeof action === "object" && !!action && "type" in action;
 }
 
-const isWrappedAction = `${prefix}/IS_WRAPPED_ACTION`;
+const MetaFlags = {
+  WRAPPED_ACTION: `${prefix}/WRAPPED_ACTION`,
+  STRINGIFIED_FUNCTION: `${prefix}/STRINGIFIED_FUNCTION`,
+} as const;
 
 interface WrappedAction<A> extends Action {
   payload: A;
   meta: {
-    [isWrappedAction]: true;
+    [MetaFlags.WRAPPED_ACTION]: true;
+    [MetaFlags.STRINGIFIED_FUNCTION]?: string;
   };
 }
 
 export type EnsureAction<A> = A extends Action ? A : WrappedAction<A>;
 
 export function wrappedAction<A>(action: A): WrappedAction<A> {
+  const stringifiedFunction =
+    typeof action === "function" ? action.toString() : undefined;
   return {
-    type: `dispatch: ${typeof action === "function" ? action.toString() : JSON.stringify(action)}`,
+    type: `dispatch: ${stringifiedFunction ?? JSON.stringify(action)}`,
     payload: action,
-    meta: { [isWrappedAction]: true },
+    meta: {
+      [MetaFlags.WRAPPED_ACTION]: true,
+      [MetaFlags.STRINGIFIED_FUNCTION]: stringifiedFunction,
+    },
   };
 }
 
 wrappedAction.match = (action: Action): action is WrappedAction<unknown> =>
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-  !!(action as any).meta?.[isWrappedAction];
+  !!(action as any).meta?.[MetaFlags.WRAPPED_ACTION];
 
 export function ensureAction<A>(action: A): EnsureAction<A> {
   return (isAction(action) ? action : wrappedAction(action)) as never;
 }
 
 export function unwrapAction<A>(action: (Action & A) | WrappedAction<A>): A {
-  return wrappedAction.match(action) ? action.payload : action;
+  if (wrappedAction.match(action)) {
+    const stringifiedFunction = action.meta[MetaFlags.STRINGIFIED_FUNCTION];
+    if (stringifiedFunction) {
+      // eslint-disable-next-line no-new-func, @typescript-eslint/no-implied-eval
+      return new Function(`return ${stringifiedFunction}`)() as A;
+    }
+    return action.payload;
+  }
+  return action;
 }
