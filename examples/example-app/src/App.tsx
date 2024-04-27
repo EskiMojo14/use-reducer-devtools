@@ -70,7 +70,9 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <p>count is {reduxCount.value}</p>
+        <p>
+          <code>reduxCount</code> is {reduxCount.value}
+        </p>
         <button onClick={() => dispatch(increment())}>Increment</button>
         <button onClick={() => dispatch(decrement())}>Decrement</button>
         <p>
@@ -78,12 +80,16 @@ function App() {
         </p>
       </div>
       <div className="card">
-        <p>countUp is {sumCount}</p>
+        <p>
+          <code>sumCount</code> is {sumCount}
+        </p>
         <button onClick={() => increaseCount(10)}>Increase by 10</button>
         <button onClick={() => increaseCount(-5)}>Decrease by 5</button>
       </div>
       <div className="card">
-        <p>settableCount is {settableCount}</p>
+        <p>
+          <code>settableCount</code> is {settableCount}
+        </p>
         <button onClick={() => setCount(10)}>Set to 10</button>
         <button onClick={() => setCount((state) => state + 5)}>
           Increase by 5
