@@ -1,15 +1,14 @@
-import type { Config } from "@redux-devtools/extension";
 import type { MutableRefObject, Reducer } from "react";
 import type { EnsureAction, IncomingMessageAction } from "../actions";
 import { incomingMessage, isAction } from "../actions";
-import type { ActionState, StatusRefs } from "../types";
+import type { ActionState, DevtoolsConfig, StatusRefs } from "../types";
 import { messageReducer, processAction } from "./incoming";
 
 export const liftReducer =
   <S, A>(
     reducer: Reducer<S, A>,
     initialState: S,
-    config: Config,
+    config: DevtoolsConfig<S, A>,
     statusRefs: MutableRefObject<StatusRefs>,
   ): Reducer<
     ActionState<S, A>,

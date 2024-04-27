@@ -1,10 +1,9 @@
-import type { Config } from "@redux-devtools/extension";
 import type { LiftedState } from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer } from "react";
 import type { EnsureAction, IncomingMessage } from "../actions";
 import { ActionTypes, MessageTypes, UseReducerActions } from "../actions";
-import type { ActionState } from "../types";
+import type { ActionState, DevtoolsConfig } from "../types";
 import { getToggledState, processActionCreators } from "../util";
 
 const shouldInitState = <S, A>(state: S): ActionState<S, A> => ({
@@ -73,7 +72,7 @@ export const messageReducer = <S, A>(
   message: IncomingMessage<S, EnsureAction<A>>,
   reducer: Reducer<S, A>,
   initialState: S,
-  config: Config,
+  config: DevtoolsConfig<S, A>,
   paused: boolean,
 ): ActionState<S, A> => {
   switch (message.type) {

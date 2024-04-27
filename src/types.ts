@@ -1,5 +1,13 @@
+import type { Config } from "@redux-devtools/extension";
 import type { LiftedState } from "@redux-devtools/instrument";
 import type { Action, EnsureAction, UseReducerActions } from "./actions";
+
+type ActionCreator<A> = (...args: Array<any>) => A;
+
+export type DevtoolsConfig<S, A> = Config & {
+  actionCreators?: Array<ActionCreator<A>> | Record<string, ActionCreator<A>>;
+  instanceId?: number;
+};
 
 export type NotUndefined = NonNullable<unknown> | null;
 

@@ -1,8 +1,7 @@
-import type { Config } from "@redux-devtools/extension";
 import type { Reducer, Dispatch } from "react";
 import { useDebugValue, useReducer, useRef } from "react";
 import { liftReducer } from "../reducers/lift";
-import type { NotUndefined, StatusRefs } from "../types";
+import type { DevtoolsConfig, NotUndefined, StatusRefs } from "../types";
 import { useIncomingActions } from "./incoming";
 import { useOutgoingActions } from "./outgoing";
 import { useLazyRef } from "./util";
@@ -15,7 +14,7 @@ function getNextId() {
 export function useReducerWithDevtools<S extends NotUndefined, A>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
-  config: Config & { instanceId?: number } = {},
+  config: DevtoolsConfig<S, A> = {},
 ): [S, Dispatch<A>] {
   const initialStateRef = useLazyRef(initialState);
   const instanceIdRef = useLazyRef(() => config.instanceId ?? getNextId());
