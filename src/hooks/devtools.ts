@@ -33,15 +33,15 @@ export function useReducerWithDevtools<S extends NotUndefined, A>(
   config: DevtoolsConfig<S, A> = {},
 ): [S, Dispatch<A>] {
   const initialStateRef = useLazyRef(initialState);
-  const instanceIdRef = useLazyRef(() => config.instanceId ?? getNextId());
   const connectionRef = useLazyRef(() => {
+    const instanceId = config.instanceId ?? getNextId();
     if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
       const response = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
         ...config,
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        name: config.name ?? `useReducerWithDevtools ${instanceIdRef.current}`,
+        name: config.name ?? `useReducerWithDevtools ${instanceId}`,
         // @ts-expect-error undocumented
-        instanceId: instanceIdRef.current,
+        instanceId,
       });
       response.init(initialStateRef.current);
       return response;
