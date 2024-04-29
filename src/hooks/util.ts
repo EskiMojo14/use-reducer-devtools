@@ -1,5 +1,10 @@
-import type { Dispatch, MutableRefObject, Reducer } from "react";
-import { useDebugValue, useReducer, useRef } from "react";
+import type {
+  Dispatch,
+  EffectCallback,
+  MutableRefObject,
+  Reducer,
+} from "react";
+import { useDebugValue, useEffect, useReducer, useRef } from "react";
 import type { NotUndefined } from "../types";
 
 const useDevDebugValue: typeof useDebugValue =
@@ -36,4 +41,14 @@ export function useLazyRef<T extends NotUndefined>(
   useDevDebugValue(ref.current);
 
   return ref as MutableRefObject<T>;
+}
+
+export function useFirstRenderEffect(effect: EffectCallback) {
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return effect();
+    }
+  }, []);
 }
