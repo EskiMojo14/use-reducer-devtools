@@ -4,10 +4,14 @@ import type { Action, EnsureAction, UseReducerActions } from "./actions";
 
 type ActionCreator<A> = (...args: Array<any>) => A;
 
-export type DevtoolsConfig<S, A> = Config & {
-  actionCreators?: Array<ActionCreator<A>> | Record<string, ActionCreator<A>>;
-  instanceId?: number;
-};
+type Overwrite<T, U> = Omit<T, keyof U> & U;
+
+export type DevtoolsConfig<S, A> = Overwrite<
+  Config,
+  {
+    actionCreators?: Array<ActionCreator<A>> | Record<string, ActionCreator<A>>;
+  }
+>;
 
 export type NotUndefined = NonNullable<unknown> | null;
 

@@ -6,27 +6,6 @@ import { useIncomingActions } from "./incoming";
 import { useOutgoingActions } from "./outgoing";
 import { useLazyRef } from "./util";
 
-declare global {
-  interface Window {
-    __USE_REDUCER_DEVTOOLS_INSTANCE_ID__?: number;
-  }
-}
-
-if (
-  typeof window !== "undefined" &&
-  window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ === undefined
-) {
-  window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ = 5000;
-}
-function getNextId() {
-  if (
-    typeof window === "undefined" ||
-    typeof window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__ === "undefined"
-  )
-    return 0; // no window = no devtools
-  return window.__USE_REDUCER_DEVTOOLS_INSTANCE_ID__++;
-}
-
 export function useReducerWithDevtools<S extends NotUndefined, A>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
@@ -34,14 +13,11 @@ export function useReducerWithDevtools<S extends NotUndefined, A>(
 ): [S, Dispatch<A>] {
   const initialStateRef = useLazyRef(initialState);
   const connectionRef = useLazyRef(() => {
-    const instanceId = config.instanceId ?? getNextId();
     if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
       const response = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
         ...config,
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        name: config.name ?? `useReducerWithDevtools ${instanceId}`,
-        // @ts-expect-error undocumented
-        instanceId,
+        name: config.name ?? `useReducerWithDevtools`,
       });
       response.init(initialStateRef.current);
       return response;
