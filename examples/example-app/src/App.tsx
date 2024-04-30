@@ -42,7 +42,7 @@ function App() {
     },
   );
 
-  // function actions - will be logged but cannot time-travel debug
+  // function actions
   const [settableCount, setCount] = useReducerWithDevtools(
     (state: number, action: SetStateAction<number>) =>
       typeof action === "function" ? action(state) : action,
