@@ -7,6 +7,7 @@ import {
   type NotUndefined,
   type StatusRefs,
 } from "../types";
+import { withDefaults } from "./config";
 import { useIncomingActions } from "./incoming";
 import { useOutgoingActions } from "./outgoing";
 import { useFirstRenderEffect, useLazyRef } from "./util";
@@ -21,11 +22,7 @@ export function useReducerWithDevtools<S extends NotUndefined, A>(
   useFirstRenderEffect(() => {
     if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
       const response = (connectionRef.current =
-        window.__REDUX_DEVTOOLS_EXTENSION__.connect({
-          ...config,
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          name: config.name ?? `useReducerWithDevtools`,
-        }));
+        window.__REDUX_DEVTOOLS_EXTENSION__.connect(withDefaults(config)));
       response.init(initialStateRef.current);
     }
   });
