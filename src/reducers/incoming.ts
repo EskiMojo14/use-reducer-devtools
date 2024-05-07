@@ -2,7 +2,12 @@ import type { LiftedState } from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer } from "react";
 import type { EnsureAction, IncomingMessage } from "../actions";
-import { ActionTypes, MessageTypes, UseReducerActions } from "../actions";
+import {
+  ActionTypes,
+  MessageTypes,
+  UseReducerActions,
+  assertHasState,
+} from "../actions";
 import type { ActionState, DevtoolsConfig } from "../types";
 import { getToggledState, processActionCreators } from "../util";
 
@@ -85,13 +90,16 @@ export const messageReducer = <S, A>(
           return shouldInitState(state.state);
         }
         case ActionTypes.ROLLBACK: {
+          assertHasState(message);
           return shouldInitState(JSON.parse(message.state) as S);
         }
         case ActionTypes.JUMP_TO_STATE:
         case ActionTypes.JUMP_TO_ACTION: {
+          assertHasState(message);
           return clearActions(JSON.parse(message.state) as S);
         }
         case ActionTypes.TOGGLE_ACTION: {
+          assertHasState(message);
           return toggleAction(
             reducer,
             state,

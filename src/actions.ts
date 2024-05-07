@@ -23,6 +23,14 @@ export const ActionTypes: typeof InstrumentActionTypes = {
   PAUSE_RECORDING: "PAUSE_RECORDING",
 } as const;
 
+export function assertHasState(
+  message: object,
+): asserts message is { state: string } {
+  if (!("state" in message && typeof message.state === "string")) {
+    throw new Error("Message should have state");
+  }
+}
+
 export const MessageTypes = {
   DISPATCH: "DISPATCH",
   ACTION: "ACTION",
@@ -33,7 +41,7 @@ export const MessageTypes = {
 export type IncomingMessage<S, A extends Action> =
   | (Action<typeof MessageTypes.DISPATCH> & {
       payload: LiftedAction<S, A, unknown>;
-      state: string;
+      state?: string;
     })
   | (Action<typeof MessageTypes.ACTION> & {
       payload: string;
@@ -67,12 +75,17 @@ export function incomingMessage<S, A extends Action>(
 }
 
 incomingMessage.match = <S, A extends Action>(
-  action: Action,
+  action: unknown,
 ): action is IncomingMessageAction<S, A> =>
-  action.type === UseReducerActions.INCOMING;
+  isAction(action) && action.type === UseReducerActions.INCOMING;
 
 export function isAction(action: unknown): action is Action {
-  return typeof action === "object" && !!action && "type" in action;
+  return (
+    typeof action === "object" &&
+    !!action &&
+    "type" in action &&
+    typeof action.type === "string"
+  );
 }
 
 const MetaFlags = {
