@@ -17,6 +17,12 @@ function isStateFunction<S>(state: S | (() => S)): state is () => S {
 const getInitialState = <S>(initialState: S | (() => S)): S =>
   isStateFunction(initialState) ? initialState() : initialState;
 
+/**
+ * A simple wrapper that allows using a lazy state initializer with `useReducer`.
+ *
+ * @example
+ * const [state, dispatch] = useReducerWithLazyState(reducer, () => initialState);
+ */
 export function useReducerWithLazyState<S, A>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),

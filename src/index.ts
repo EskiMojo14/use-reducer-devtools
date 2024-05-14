@@ -1,6 +1,8 @@
 import { useReducerWithDevtools as useReducerWithDevtoolsImpl } from "./hooks/devtools";
 import { useReducerWithLazyState } from "./hooks/util";
 
+export { useReducerWithLazyState };
+
 export const useReducerWithProdDevtools = useReducerWithDevtoolsImpl;
 
 const shouldUseDevtools =
