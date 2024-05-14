@@ -47,3 +47,4 @@ const [settableCount, setCount] = useReducerWithDevtools(
 
 - Redux Devtools doesn't currently support disconnecting a store, meaning that each hook will still show in the DevTools even after the component is unmounted. This is a limitation of the DevTools extension itself, and not something that can be fixed in this library.
 - For time travel debugging to work properly, your state must be serializeable (i.e. JSON.stringify-able). Actions can be functions, in which case they will be stringified and evaluated on replay.
+- Because of the way the `useReducerWithDevTools` hook logs committed actions, it will cause a rerender every time an action is dispatched, regardless of if your reducer returned a new state. This is different to the usual behaviour of `useReducer`, which only causes a rerender when the state changes. This should be less of an issue as the DevTools integration is only enabled in development mode by default.
