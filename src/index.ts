@@ -2,6 +2,7 @@ import { useReducerWithDevtools as useReducerWithDevtoolsImpl } from "./hooks/de
 import { useReducerWithLazyState } from "./hooks/util";
 
 export { useReducerWithLazyState };
+export type { DevtoolsConfig } from "./types";
 
 export const useReducerWithProdDevtools = useReducerWithDevtoolsImpl;
 
