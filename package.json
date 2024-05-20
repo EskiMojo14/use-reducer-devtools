@@ -79,5 +79,13 @@
   "dependencies": {
     "@redux-devtools/extension": "^3.3.0",
     "@redux-devtools/utils": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "react",
+    "reducer",
+    "redux",
+    "hook",
+    "devtools",
+    "use-reducer"
+  ]
 }
