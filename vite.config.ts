@@ -39,6 +39,7 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
+          unstubGlobals: true,
           include: ["**/*.node.test.ts"],
         },
       },
