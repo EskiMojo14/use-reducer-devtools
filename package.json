@@ -1,6 +1,5 @@
 {
   "name": "use-reducer-devtools",
-  "packageManager": "yarn@4.1.1",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -71,7 +70,7 @@
     "react-dom": "^18.3.0",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5",
-    "vitest": "^1.5.2"
+    "vitest": "^4"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
@@ -87,5 +86,12 @@
     "hook",
     "devtools",
     "use-reducer"
-  ]
+  ],
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.16.1",
+      "onFail": "download"
+    }
+  }
 }
