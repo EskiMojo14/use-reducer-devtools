@@ -207,6 +207,9 @@ importers:
       '@vitest/browser-playwright':
         specifier: 5.0.5
         version: 5.0.5(@arethetypeswrong/core@0.18.5)(@types/node@26.6.5)(playwright@1.64.1)(publint@0.3.25)(typescript@7.0.2)(vitest@5.0.5)
+      modern-web-guidance:
+        specifier: ^0.0.196
+        version: 0.0.196
       playwright:
         specifier: ^1.64.1
         version: 1.64.1
@@ -1326,6 +1329,11 @@ packages:
   marked@9.1.6:
     resolution: {integrity: sha512-jcByLnIFkd5gSXZmjNvS1TlmRhCXZjIzHYlaGkPlLIekG55JDR2Z4va9tZwCiP+/RDERiNhMOFu01xd6O5ct1Q==}
     engines: {node: '>= 16'}
+    hasBin: true
+
+  modern-web-guidance@0.0.196:
+    resolution: {integrity: sha512-M+tLvHwRo27cqgwMgSz+JRLoUv4n4dP9z9eNM9pPfxRbc0TMzKauqBJtcAvkvBS5Zwa2DUw43FFNAYgbV8uk4A==}
+    engines: {node: '>=20.0.0', vscode: ^1.90.0}
     hasBin: true
 
   mri@1.2.0:
@@ -2485,6 +2493,8 @@ snapshots:
       supports-hyperlinks: 3.2.0
 
   marked@9.1.6: {}
+
+  modern-web-guidance@0.0.196: {}
 
   mri@1.2.0: {}
 

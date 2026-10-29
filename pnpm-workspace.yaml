@@ -17,3 +17,9 @@ peerDependencyRules:
   allowedVersions:
     vite: "*"
     vitest: "*"
+permissions:
+  modern-web-guidance:
+    skills: true
+skills:
+  dirs:
+    - .agents/skills
