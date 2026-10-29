@@ -52,6 +52,7 @@
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
+    "@vitest/browser-playwright": "^5.0.5",
     "eslint": "^8",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
@@ -66,7 +67,8 @@
     "tsup": "^8.0.2",
     "typescript": "^5.4.5",
     "vite-plus": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "vitest-browser-react": "^2.3.0"
   },
   "peerDependencies": {
     "react": ">=16.8.0"

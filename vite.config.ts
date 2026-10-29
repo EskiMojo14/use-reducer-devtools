@@ -1,4 +1,5 @@
 import { defineConfig } from "vite-plus";
+import { playwright } from "vite-plus/test/browser-playwright";
 
 export default defineConfig({
   lint: {
@@ -25,6 +26,44 @@ export default defineConfig({
   fmt: {
     sortImports: true,
     ignorePatterns: [],
+  },
+  test: {
+    projects: [
+      {
+        test: {
+          name: "node",
+          environment: "node",
+          include: ["**/*.node.test.ts"],
+        },
+      },
+      {
+        test: {
+          name: "browser",
+          retry: 3,
+          include: ["**/*.browser.test.ts", "**/*.browser.test.tsx"],
+          setupFiles: ["./test/browser/setup.ts"],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright({
+              launchOptions: { channel: "chromium" },
+              contextOptions: { permissions: ["clipboard-read", "clipboard-write"] },
+            }),
+            instances: [{ browser: "chromium" }],
+          },
+        },
+      },
+      {
+        test: {
+          name: "types",
+          typecheck: {
+            enabled: true,
+            only: true,
+            include: ["**/*.test-d.ts"],
+          },
+        },
+      },
+    ],
   },
   pack: {
     deps: {
