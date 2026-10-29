@@ -43,15 +43,19 @@
   },
   "dependencies": {
     "@redux-devtools/extension": "^4.0.0",
-    "@redux-devtools/utils": "^4.0.1"
+    "@redux-devtools/serialize": "^1.0.0",
+    "@redux-devtools/utils": "^4.0.1",
+    "jsan": "^3.1.14"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@redux-devtools/instrument": "^3.0.0",
+    "@types/jsan": "^3.1.5",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitest/browser-playwright": "5.0.5",
+    "immutable": "^5.1.9",
     "modern-web-guidance": "^0.0.196",
     "playwright": "^1.64.1",
     "publint": "^0.3.25",

@@ -11,7 +11,7 @@ import {
   unwrapAction,
 } from "../actions";
 import type { ActionState, DevtoolsConfig } from "../types";
-import { getToggledState, processActionCreators } from "../util";
+import { getToggledState, parseState, processActionCreators } from "../util";
 
 const shouldInitState = <S, A>(state: S): ActionState<S, A> => ({
   state,
@@ -46,8 +46,9 @@ const toggleAction = <S, A>(
   state: ActionState<S, A>,
   id: number,
   strState: string,
+  serialize: DevtoolsConfig<S, A>["serialize"],
 ): ActionState<S, A> => {
-  const { nextState, liftedState } = getToggledState(reducer, state.state, id, strState);
+  const { nextState, liftedState } = getToggledState(reducer, state.state, id, strState, serialize);
 
   return {
     state: nextState,
@@ -82,16 +83,16 @@ export const messageReducer = <S, A>(
         }
         case ActionTypes.ROLLBACK: {
           assertHasState(message);
-          return shouldInitState(JSON.parse(message.state) as S);
+          return shouldInitState(parseState(message.state, config.serialize) as S);
         }
         case ActionTypes.JUMP_TO_STATE:
         case ActionTypes.JUMP_TO_ACTION: {
           assertHasState(message);
-          return clearActions(JSON.parse(message.state) as S);
+          return clearActions(parseState(message.state, config.serialize) as S);
         }
         case ActionTypes.TOGGLE_ACTION: {
           assertHasState(message);
-          return toggleAction(reducer, state, message.payload.id, message.state);
+          return toggleAction(reducer, state, message.payload.id, message.state, config.serialize);
         }
         case ActionTypes.IMPORT_STATE: {
           const { nextLiftedState, preloadedState } = message.payload;

@@ -3,6 +3,7 @@ import { render } from "vitest-browser-react";
 
 import { ActionTypes, MessageTypes, ensureAction } from "../actions";
 import { useReducerWithProdDevtools } from "../index";
+import type { DevtoolsConfig } from "../types";
 
 type DevtoolsMessageHandler = (message: unknown) => void;
 
@@ -54,7 +55,150 @@ function Digits() {
   return <output aria-label="Digits">{value}</output>;
 }
 
+interface RichState {
+  date: Date;
+  values: Map<string, number>;
+}
+
+function reviveDate(key: string, value: unknown): unknown {
+  return key === "date" && typeof value === "string" ? new Date(value) : value;
+}
+
+function RichCounter({
+  serialize = true,
+}: {
+  serialize?: DevtoolsConfig<RichState, number>["serialize"];
+}) {
+  const [state] = useReducerWithProdDevtools(
+    (current: RichState, amount: number) => ({
+      ...current,
+      values: new Map([["count", (current.values.get("count") ?? 0) + amount]]),
+    }),
+    () => ({ date: new Date("2026-01-01T00:00:00Z"), values: new Map([["count", 0]]) }),
+    { serialize },
+  );
+  return (
+    <output aria-label="Rich state">
+      {state.date instanceof Date ? state.date.toISOString() : "Invalid date"}:
+      {state.values instanceof Map ? state.values.get("count") : "Invalid map"}
+    </output>
+  );
+}
+
+function ImmutableCounter() {
+  const [state] = useReducerWithProdDevtools(
+    (current: Immutable.Map<string, number>, amount: number) =>
+      current.update("count", 0, (count) => count + amount),
+    () => Immutable.Map({ count: 0 }),
+    { serialize: { immutable: Immutable } },
+  );
+  return (
+    <output aria-label="Immutable state">
+      {Immutable.Map.isMap(state) ? state.get("count") : "Invalid immutable state"}
+    </output>
+  );
+}
+
 describe("useReducerWithProdDevtools in a browser", () => {
+  it.each([ActionTypes.JUMP_TO_STATE, ActionTypes.JUMP_TO_ACTION, ActionTypes.ROLLBACK])(
+    "restores Dates and Maps for %s",
+    async (type) => {
+      using devtools = installDevtools();
+      const screen = await render(<RichCounter />);
+      devtools.receive({
+        type: MessageTypes.DISPATCH,
+        payload: { type },
+        state: jsan.stringify(
+          { date: new Date("2026-10-29T00:00:00Z"), values: new Map([["count", 42]]) },
+          undefined,
+          undefined,
+          true,
+        ),
+      });
+
+      await expect
+        .element(screen.getByRole("status", { name: "Rich state" }))
+        .toHaveTextContent("2026-10-29T00:00:00.000Z:42");
+    },
+  );
+
+  it("uses the configured reviver for time travel", async () => {
+    using devtools = installDevtools();
+    const screen = await render(<RichCounter serialize={{ reviver: reviveDate }} />);
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.JUMP_TO_STATE },
+      state: jsan.stringify(
+        { date: "2026-10-29T00:00:00Z", values: new Map([["count", 42]]) },
+        undefined,
+        undefined,
+        true,
+      ),
+    });
+
+    await expect
+      .element(screen.getByRole("status", { name: "Rich state" }))
+      .toHaveTextContent("2026-10-29T00:00:00.000Z:42");
+  });
+
+  it("restores Immutable state for time travel", async () => {
+    using devtools = installDevtools();
+    const screen = await render(<ImmutableCounter />);
+    const serializer = immutableSerialize(Immutable);
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.JUMP_TO_STATE },
+      state: jsan.stringify(
+        Immutable.Map({ count: 42 }),
+        serializer.replacer,
+        undefined,
+        serializer.options,
+      ),
+    });
+
+    await expect
+      .element(screen.getByRole("status", { name: "Immutable state" }))
+      .toHaveTextContent("42");
+  });
+
+  it("deserializes lifted history before replaying a skipped action", async () => {
+    using devtools = installDevtools();
+    const screen = await render(<RichCounter serialize={{ reviver: reviveDate }} />);
+    const initial = { date: new Date("2026-10-29T00:00:00Z"), values: new Map([["count", 40]]) };
+    const serializedInitial = { ...initial, date: initial.date.toISOString() };
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.TOGGLE_ACTION, id: 1 },
+      state: jsan.stringify(
+        {
+          stagedActionIds: [0, 1],
+          skippedActionIds: [1],
+          actionsById: { 1: { action: ensureAction(2) } },
+          computedStates: [{ state: serializedInitial }, { state: serializedInitial }],
+        },
+        undefined,
+        undefined,
+        true,
+      ),
+    });
+
+    await expect
+      .element(screen.getByRole("status", { name: "Rich state" }))
+      .toHaveTextContent("2026-10-29T00:00:00.000Z:42");
+    await expect
+      .poll(() => devtools.connection.send.mock.calls.at(-1))
+      .toEqual([
+        null,
+        expect.objectContaining({
+          skippedActionIds: [],
+          computedStates: [
+            { state: initial },
+            { state: { ...initial, values: new Map([["count", 42]]) } },
+          ],
+        }),
+      ]);
+  });
+
   it("initializes DevTools and sends reducer actions with the resulting state", async () => {
     using devtools = installDevtools();
     const screen = await render(<Counter />);
@@ -166,3 +310,6 @@ describe("useReducerWithProdDevtools in a browser", () => {
     ]);
   });
 });
+import { immutableSerialize } from "@redux-devtools/serialize";
+import * as Immutable from "immutable";
+import jsan from "jsan";

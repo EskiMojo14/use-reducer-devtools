@@ -185,9 +185,15 @@ importers:
       '@redux-devtools/extension':
         specifier: ^4.0.0
         version: 4.0.0(redux@5.0.1)
+      '@redux-devtools/serialize':
+        specifier: ^1.0.0
+        version: 1.0.0(immutable@5.1.9)
       '@redux-devtools/utils':
         specifier: ^4.0.1
         version: 4.0.1(@redux-devtools/core@5.0.0(react-redux@9.3.1(@types/react@19.3.0)(react@19.3.1)(redux@5.0.1))(react@19.3.1)(redux@5.0.1))(immutable@5.1.9)(redux@5.0.1)
+      jsan:
+        specifier: ^3.1.14
+        version: 3.1.14
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: ^0.18.5
@@ -195,6 +201,9 @@ importers:
       '@redux-devtools/instrument':
         specifier: ^3.0.0
         version: 3.0.0(redux@5.0.1)
+      '@types/jsan':
+        specifier: ^3.1.5
+        version: 3.1.5
       '@types/node':
         specifier: ^26.6.5
         version: 26.6.5
@@ -207,6 +216,9 @@ importers:
       '@vitest/browser-playwright':
         specifier: 5.0.5
         version: 5.0.5(@arethetypeswrong/core@0.18.5)(@types/node@26.6.5)(playwright@1.64.1)(publint@0.3.25)(typescript@7.0.2)(vitest@5.0.5)
+      immutable:
+        specifier: ^5.1.9
+        version: 5.1.9
       modern-web-guidance:
         specifier: ^0.0.196
         version: 0.0.196
@@ -687,6 +699,9 @@ packages:
 
   '@types/get-params@0.1.2':
     resolution: {integrity: sha512-ujqPyr1UDsOTDngJPV+WFbR0iHT5AfZKlNPMX6XOCnQcMhEqR+r64dVC/nwYCitqjR3DcpWofnOEAInUQmI/eA==}
+
+  '@types/jsan@3.1.5':
+    resolution: {integrity: sha512-gPZqsdRGlS/lAIXP0kKnHoG3w6DaFskZHpt3PZlvY7g2Pme16Qu9weGdY1dSoziU6A73+Wj/wst5d2v+j4AO9A==}
 
   '@types/node@26.6.5':
     resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
@@ -1979,6 +1994,8 @@ snapshots:
   '@types/estree@1.0.9': {}
 
   '@types/get-params@0.1.2': {}
+
+  '@types/jsan@3.1.5': {}
 
   '@types/node@26.6.5':
     dependencies:
