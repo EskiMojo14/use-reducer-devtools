@@ -26,6 +26,7 @@ export default defineConfig({
   },
   fmt: {
     sortImports: true,
+    sortPackageJson: true,
     ignorePatterns: [],
   },
   staged: {
@@ -81,6 +82,6 @@ export default defineConfig({
     sourcemap: true,
     format: ["esm", "cjs"],
     dts: true,
-    minify: true,
+    exports: true,
   },
 });
