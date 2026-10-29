@@ -49,6 +49,10 @@ For state containing Dates, Maps, Sets, or circular references, configure `seria
 
 The DevTools import feature supports both full lifted histories and action-only histories. Action-only histories are replayed in order from their `preloadedState`, or from the hook's initial state when it is omitted. Importing an empty action array resets the state to that starting state. The replayed history is sent back to DevTools.
 
+Full-history imports restore the selected time-travel position, rather than always selecting the latest state. Skipping or restoring an action recomputes subsequent history, including skipped entries, and preserves the selected position.
+
+Locking changes blocks application dispatches and actions dispatched from the DevTools UI. DevTools controls such as time travel, reset, and import remain available while locked.
+
 ## Limitations
 
 - Action reordering is not supported and is disabled by default. Redux DevTools does not include the action history in `REORDER_ACTION` messages for non-Redux connections, and this hook does not retain its own full history. Enabling `features.reorder` does not add support. Supporting reordering would require local history tracking or an upstream protocol change.

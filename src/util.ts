@@ -48,19 +48,7 @@ export const getToggledState = <S, A>(
   const idx = liftedState.skippedActionIds.indexOf(id);
   const skipped = idx !== -1;
   const start = liftedState.stagedActionIds.indexOf(id);
-  if (start === -1) return { nextState: state, liftedState };
-
-  let nextState = liftedState.computedStates[start - 1]!.state;
-
-  for (let i = skipped ? start : start + 1; i < liftedState.stagedActionIds.length; i++) {
-    if (i !== start && liftedState.skippedActionIds.includes(liftedState.stagedActionIds[i]!))
-      continue; // it's already skipped
-    nextState = reducer(
-      nextState,
-      unwrapAction(liftedState.actionsById[liftedState.stagedActionIds[i]!]!.action),
-    );
-    liftedState.computedStates[i]!.state = nextState;
-  }
+  if (start < 1) return { nextState: state, liftedState };
 
   if (skipped) {
     liftedState.skippedActionIds.splice(idx, 1);
@@ -68,5 +56,18 @@ export const getToggledState = <S, A>(
     liftedState.skippedActionIds.push(id);
   }
 
-  return { nextState, liftedState };
+  let nextState = liftedState.computedStates[start - 1]!.state;
+  for (let i = start; i < liftedState.stagedActionIds.length; i++) {
+    const actionId = liftedState.stagedActionIds[i]!;
+    if (!liftedState.skippedActionIds.includes(actionId)) {
+      nextState = reducer(nextState, unwrapAction(liftedState.actionsById[actionId]!.action));
+    }
+    liftedState.computedStates[i] = { state: nextState };
+  }
+
+  const selectedState = liftedState.computedStates[liftedState.currentStateIndex];
+  if (!selectedState) {
+    throw new Error("DevTools history is missing the selected computed state");
+  }
+  return { nextState: selectedState.state, liftedState };
 };

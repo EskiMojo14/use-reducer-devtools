@@ -59,10 +59,16 @@ const toggleAction = <S, A>(
 const importState = <S, A>(
   state: ActionState<S, A>,
   nextLiftedState: LiftedState<S, EnsureAction<A>, unknown>,
-): ActionState<S, A> => ({
-  state: nextLiftedState.computedStates.slice(-1)[0]?.state ?? state.state,
-  actions: [...state.actions, [{ type: UseReducerActions.NULL }, nextLiftedState]],
-});
+): ActionState<S, A> => {
+  const selectedState = nextLiftedState.computedStates[nextLiftedState.currentStateIndex];
+  if (!selectedState) {
+    throw new Error("DevTools history is missing the selected computed state");
+  }
+  return {
+    state: selectedState.state,
+    actions: [...state.actions, [{ type: UseReducerActions.NULL }, nextLiftedState]],
+  };
+};
 
 export const messageReducer = <S, A>(
   state: ActionState<S, A>,

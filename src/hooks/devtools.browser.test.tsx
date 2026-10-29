@@ -55,6 +55,14 @@ function Digits() {
   return <output aria-label="Digits">{value}</output>;
 }
 
+function NullableCounter() {
+  const [value] = useReducerWithProdDevtools(
+    (state: number | null, amount: number) => (state ?? 0) + amount,
+    10,
+  );
+  return <output aria-label="Nullable count">{value === null ? "Empty" : value}</output>;
+}
+
 interface RichState {
   date: Date;
   values: Map<string, number>;
@@ -100,6 +108,147 @@ function ImmutableCounter() {
 }
 
 describe("useReducerWithProdDevtools in a browser", () => {
+  it.each([0, 1, 3])(
+    "keeps the selected history position %s when skipping an action",
+    async (currentStateIndex) => {
+      using devtools = installDevtools();
+      const screen = await render(<Counter />);
+      const history = {
+        stagedActionIds: [0, 1, 2, 3],
+        skippedActionIds: [2],
+        currentStateIndex,
+        actionsById: {
+          0: { action: { type: "@@INIT" } },
+          1: { action: { type: "increment" } },
+          2: { action: { type: "increment" } },
+          3: { action: { type: "increment" } },
+        },
+        computedStates: [{ state: 10 }, { state: 11 }, { state: 11 }, { state: 12 }],
+      };
+      devtools.receive({
+        type: MessageTypes.DISPATCH,
+        payload: { type: ActionTypes.TOGGLE_ACTION, id: 1 },
+        state: JSON.stringify(history),
+      });
+
+      await expect
+        .element(
+          screen.getByRole("button", {
+            name: `Count is ${currentStateIndex === 3 ? 11 : 10}`,
+          }),
+        )
+        .toBeVisible();
+      await expect
+        .poll(() => devtools.connection.send.mock.calls.at(-1))
+        .toEqual([
+          null,
+          {
+            ...history,
+            skippedActionIds: [2, 1],
+            computedStates: [{ state: 10 }, { state: 10 }, { state: 10 }, { state: 11 }],
+          },
+        ]);
+
+      devtools.receive({
+        type: MessageTypes.DISPATCH,
+        payload: { type: ActionTypes.TOGGLE_ACTION, id: 1 },
+        state: JSON.stringify({
+          ...history,
+          skippedActionIds: [2, 1],
+          computedStates: [{ state: 10 }, { state: 10 }, { state: 10 }, { state: 11 }],
+        }),
+      });
+      await expect
+        .element(
+          screen.getByRole("button", {
+            name: `Count is ${history.computedStates[currentStateIndex]!.state}`,
+          }),
+        )
+        .toBeVisible();
+      await expect.poll(() => devtools.connection.send.mock.calls.at(-1)).toEqual([null, history]);
+    },
+  );
+
+  it.each([0, 1])(
+    "restores selected position %s from an imported full history",
+    async (currentStateIndex) => {
+      using devtools = installDevtools();
+      const screen = await render(<Counter />);
+      const history = {
+        currentStateIndex,
+        computedStates: [{ state: 10 }, { state: 11 }, { state: 12 }],
+      };
+      devtools.receive({
+        type: MessageTypes.DISPATCH,
+        payload: { type: ActionTypes.IMPORT_STATE, nextLiftedState: history },
+      });
+
+      await expect
+        .element(
+          screen.getByRole("button", {
+            name: `Count is ${history.computedStates[currentStateIndex]!.state}`,
+          }),
+        )
+        .toBeVisible();
+      await expect.poll(() => devtools.connection.send.mock.calls.at(-1)).toEqual([null, history]);
+    },
+  );
+
+  it("allows time travel and reset while application changes are locked", async () => {
+    using devtools = installDevtools();
+    const screen = await render(<Counter />);
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.LOCK_CHANGES, status: true },
+    });
+    await screen.getByRole("button", { name: "Count is 0" }).click();
+    await expect.element(screen.getByRole("button", { name: "Count is 0" })).toBeVisible();
+    expect(devtools.connection.send).not.toHaveBeenCalled();
+
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.JUMP_TO_STATE },
+      state: "42",
+    });
+    await expect.element(screen.getByRole("button", { name: "Count is 42" })).toBeVisible();
+    devtools.receive({ type: MessageTypes.ACTION, payload: '{"type":"increment"}' });
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.COMMIT },
+    });
+    await expect.poll(() => devtools.connection.init.mock.calls.at(-1)).toEqual([42]);
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.RESET },
+    });
+    await expect.element(screen.getByRole("button", { name: "Count is 0" })).toBeVisible();
+
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.LOCK_CHANGES, status: false },
+    });
+    await screen.getByRole("button", { name: "Count is 0" }).click();
+    await expect.element(screen.getByRole("button", { name: "Count is 1" })).toBeVisible();
+  });
+
+  it("preserves a null state at the selected imported position", async () => {
+    using devtools = installDevtools();
+    const screen = await render(<NullableCounter />);
+    const history = {
+      currentStateIndex: 0,
+      computedStates: [{ state: null }, { state: 42 }],
+    };
+    devtools.receive({
+      type: MessageTypes.DISPATCH,
+      payload: { type: ActionTypes.IMPORT_STATE, nextLiftedState: history },
+    });
+
+    await expect
+      .element(screen.getByRole("status", { name: "Nullable count" }))
+      .toHaveTextContent("Empty");
+    await expect.poll(() => devtools.connection.send.mock.calls.at(-1)).toEqual([null, history]);
+  });
+
   it.each([ActionTypes.JUMP_TO_STATE, ActionTypes.JUMP_TO_ACTION, ActionTypes.ROLLBACK])(
     "restores Dates and Maps for %s",
     async (type) => {
@@ -173,6 +322,7 @@ describe("useReducerWithProdDevtools in a browser", () => {
         {
           stagedActionIds: [0, 1],
           skippedActionIds: [1],
+          currentStateIndex: 1,
           actionsById: { 1: { action: ensureAction(2) } },
           computedStates: [{ state: serializedInitial }, { state: serializedInitial }],
         },
