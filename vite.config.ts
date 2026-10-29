@@ -7,6 +7,7 @@ export default defineConfig({
     rules: {
       "vite-plus/prefer-vite-plus-imports": "error",
       "no-underscore-dangle": ["warn", { allow: ["__REDUX_DEVTOOLS_EXTENSION__"] }],
+      "typescript/array-type": ["error", { default: "generic" }],
     },
     options: { typeAware: true, typeCheck: true },
     categories: {
