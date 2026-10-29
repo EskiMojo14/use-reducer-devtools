@@ -1,14 +1,10 @@
-import type {
-  Dispatch,
-  EffectCallback,
-  MutableRefObject,
-  Reducer,
-} from "react";
+import type { Dispatch, EffectCallback, RefObject, Reducer } from "react";
 import { useDebugValue, useEffect, useReducer, useRef } from "react";
+
+import { isDevelopment } from "../environment";
 import type { NotUndefined } from "../types";
 
-const useDevDebugValue: typeof useDebugValue =
-  process.env.NODE_ENV === "development" ? useDebugValue : () => {};
+const useDevDebugValue: typeof useDebugValue = isDevelopment() ? useDebugValue : () => {};
 
 function isStateFunction<S>(state: S | (() => S)): state is () => S {
   return typeof state === "function";
@@ -27,26 +23,23 @@ export function useReducerWithLazyState<S, A>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
 ): [S, Dispatch<A>] {
-  const [state, dispatch] = useReducer(reducer, 0, () =>
-    getInitialState(initialState),
-  );
+  const [state, dispatch] = useReducer(reducer, 0, () => getInitialState(initialState));
 
   useDebugValue(state);
 
   return [state, dispatch];
 }
 
-export function useLazyRef<T extends NotUndefined>(
-  value: T | (() => T),
-): MutableRefObject<T> {
-  const ref = useRef<T>();
+export function useLazyRef<T extends NotUndefined>(value: T | (() => T)): RefObject<T> {
+  const ref = useRef<T | undefined>(undefined);
   if (ref.current === undefined) {
     ref.current = getInitialState(value);
   }
 
   useDevDebugValue(ref.current);
 
-  return ref as MutableRefObject<T>;
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  return ref as RefObject<T>;
 }
 
 export function useFirstRenderEffect(effect: EffectCallback) {

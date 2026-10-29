@@ -11,8 +11,8 @@ export const withDefaults = (config: Config = {}): Config => ({
     import: "custom", // import history of actions from a file
     jump: true, // jump back and forth (time travelling)
     skip: true, // skip (cancel) actions
-    /* TODO? */
-    reorder: false, // drag and drop actions in the history list
+    // Non-Redux REORDER_ACTION messages omit the history needed to replay actions.
+    reorder: false,
     dispatch: true, // dispatch custom actions or action creators
     test: false, // generate tests for the selected actions
     ...config.features,

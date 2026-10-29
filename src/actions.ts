@@ -23,9 +23,7 @@ export const ActionTypes: typeof InstrumentActionTypes = {
   PAUSE_RECORDING: "PAUSE_RECORDING",
 } as const;
 
-export function assertHasState(
-  message: object,
-): asserts message is { state: string } {
+export function assertHasState(message: object): asserts message is { state: string } {
   if (!("state" in message && typeof message.state === "string")) {
     throw new Error("Message should have state");
   }
@@ -81,10 +79,7 @@ incomingMessage.match = <S, A extends Action>(
 
 export function isAction(action: unknown): action is Action {
   return (
-    typeof action === "object" &&
-    !!action &&
-    "type" in action &&
-    typeof action.type === "string"
+    typeof action === "object" && !!action && "type" in action && typeof action.type === "string"
   );
 }
 
@@ -104,8 +99,7 @@ interface WrappedAction<A> extends Action {
 export type EnsureAction<A> = A extends Action ? A : WrappedAction<A>;
 
 export function wrappedAction<A>(action: A): WrappedAction<A> {
-  const stringifiedFunction =
-    typeof action === "function" ? action.toString() : undefined;
+  const stringifiedFunction = typeof action === "function" ? action.toString() : undefined;
   return {
     type: `dispatch: ${stringifiedFunction ?? JSON.stringify(action)}`,
     payload: action,
@@ -117,8 +111,11 @@ export function wrappedAction<A>(action: A): WrappedAction<A> {
 }
 
 wrappedAction.match = (action: Action): action is WrappedAction<unknown> =>
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-  !!(action as any).meta?.[MetaFlags.WRAPPED_ACTION];
+  "meta" in action &&
+  typeof action.meta === "object" &&
+  action.meta !== null &&
+  MetaFlags.WRAPPED_ACTION in action.meta &&
+  action.meta[MetaFlags.WRAPPED_ACTION] === true;
 
 export function ensureAction<A>(action: A): EnsureAction<A> {
   return (isAction(action) ? action : wrappedAction(action)) as never;

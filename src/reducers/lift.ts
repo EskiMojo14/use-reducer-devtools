@@ -1,6 +1,7 @@
 import type { MutableRefObject, Reducer } from "react";
+
 import type { EnsureAction, IncomingMessageAction } from "../actions";
-import { incomingMessage } from "../actions";
+import { incomingMessage, MessageTypes } from "../actions";
 import type { ActionState, DevtoolsConfig, StatusRefs } from "../types";
 import { messageReducer, processAction } from "./incoming";
 
@@ -10,24 +11,15 @@ export const liftReducer =
     initialState: S,
     config: DevtoolsConfig<S, A>,
     statusRefs: MutableRefObject<StatusRefs>,
-  ): Reducer<
-    ActionState<S, A>,
-    A | IncomingMessageAction<S, EnsureAction<A>>
-  > =>
+  ): Reducer<ActionState<S, A>, A | IncomingMessageAction<S, EnsureAction<A>>> =>
   (state, action) => {
     const { locked, paused } = statusRefs.current;
-    if (locked) return state;
-
     if (incomingMessage.match<S, EnsureAction<A>>(action)) {
-      return messageReducer(
-        state,
-        action.payload,
-        reducer,
-        initialState,
-        config,
-        paused,
-      );
+      if (locked && action.payload.type === MessageTypes.ACTION) return state;
+      return messageReducer(state, action.payload, reducer, initialState, config, paused);
     }
+
+    if (locked) return state;
 
     if (paused) {
       return {

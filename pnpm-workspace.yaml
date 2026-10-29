@@ -1,0 +1,25 @@
+packages:
+  - examples/*
+allowBuilds:
+  esbuild: false
+  unrs-resolver: false
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vitest: 5.0.5
+  vite-plus: 1.4.0
+overrides:
+  vite@*: "catalog:"
+  vitest@*: "catalog:"
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"
+permissions:
+  modern-web-guidance:
+    skills: true
+skills:
+  dirs:
+    - .agents/skills
