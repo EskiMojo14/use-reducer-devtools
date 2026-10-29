@@ -1,10 +1,10 @@
 import type { Dispatch, EffectCallback, RefObject, Reducer } from "react";
 import { useDebugValue, useEffect, useReducer, useRef } from "react";
 
+import { isDevelopment } from "../environment";
 import type { NotUndefined } from "../types";
 
-const useDevDebugValue: typeof useDebugValue =
-  process.env.NODE_ENV === "development" ? useDebugValue : () => {};
+const useDevDebugValue: typeof useDebugValue = isDevelopment() ? useDebugValue : () => {};
 
 function isStateFunction<S>(state: S | (() => S)): state is () => S {
   return typeof state === "function";
