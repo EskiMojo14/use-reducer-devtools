@@ -9,10 +9,12 @@
     "moduleDetection": "force",
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "types": ["node"],
     "moduleResolution": "Bundler",
     "module": "ESNext",
     "noEmit": true,
     "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx"
-  }
+  },
+  "include": ["src"]
 }

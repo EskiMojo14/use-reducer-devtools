@@ -19,6 +19,7 @@ export default defineConfig({
         plugins: ["react"],
         rules: {
           "react/only-export-components": ["warn", { allowConstantExport: true }],
+          "react/react-in-jsx-scope": "off",
         },
       },
     ],

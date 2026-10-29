@@ -1,4 +1,4 @@
-import type { Dispatch, EffectCallback, MutableRefObject, Reducer } from "react";
+import type { Dispatch, EffectCallback, RefObject, Reducer } from "react";
 import { useDebugValue, useEffect, useReducer, useRef } from "react";
 
 import type { NotUndefined } from "../types";
@@ -30,15 +30,16 @@ export function useReducerWithLazyState<S, A>(
   return [state, dispatch];
 }
 
-export function useLazyRef<T extends NotUndefined>(value: T | (() => T)): MutableRefObject<T> {
-  const ref = useRef<T>();
+export function useLazyRef<T extends NotUndefined>(value: T | (() => T)): RefObject<T> {
+  const ref = useRef<T | undefined>(undefined);
   if (ref.current === undefined) {
     ref.current = getInitialState(value);
   }
 
   useDevDebugValue(ref.current);
 
-  return ref as MutableRefObject<T>;
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  return ref as RefObject<T>;
 }
 
 export function useFirstRenderEffect(effect: EffectCallback) {

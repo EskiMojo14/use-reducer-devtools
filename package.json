@@ -9,6 +9,7 @@
     "redux",
     "use-reducer"
   ],
+  "license": "MIT",
   "workspaces": [
     "examples/*"
   ],
@@ -17,12 +18,12 @@
   ],
   "type": "module",
   "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     }
   },
@@ -33,28 +34,28 @@
     "test": "vp test",
     "lint": "vp lint",
     "format": "vp fmt",
-    "attw": "attw",
+    "attw": "vpx scripts/attw.ts",
     "publint": "publint",
     "type": "tsc",
     "prepack": "vp run publint",
     "example": "vp -C examples/example-app dev"
   },
   "dependencies": {
-    "@redux-devtools/extension": "^3.3.0",
-    "@redux-devtools/utils": "^3.0.0"
+    "@redux-devtools/extension": "^4.0.0",
+    "@redux-devtools/utils": "^4.0.1"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.15.3",
-    "@redux-devtools/instrument": "^2.2.0",
-    "@types/node": "^20.12.7",
-    "@types/react": "^18",
-    "@types/react-dom": "^18.3.0",
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@redux-devtools/instrument": "^3.0.0",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitest/browser-playwright": "5.0.5",
     "playwright": "^1.64.1",
-    "publint": "^0.2.7",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "typescript": "^5.4.5",
+    "publint": "^0.3.25",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
     "vite-plus": "catalog:",
     "vitest": "catalog:",
     "vitest-browser-react": "^2.3.0"

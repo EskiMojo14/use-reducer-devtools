@@ -6,25 +6,20 @@
   "scripts": {
     "dev": "vp dev",
     "build": "tsc && vp build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "vp lint",
     "preview": "vp preview"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.2.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@reduxjs/toolkit": "^2.13.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "use-reducer-devtools": "workspace:^"
   },
   "devDependencies": {
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "typescript": "^5.2.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   }
