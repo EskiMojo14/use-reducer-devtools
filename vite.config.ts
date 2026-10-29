@@ -40,6 +40,7 @@ export default defineConfig({
         test: {
           name: "browser",
           retry: 3,
+          unstubGlobals: true,
           include: ["**/*.browser.test.ts", "**/*.browser.test.tsx"],
           setupFiles: ["./test/browser/setup.ts"],
           browser: {
