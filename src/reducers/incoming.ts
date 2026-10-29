@@ -3,7 +3,13 @@ import { evalAction } from "@redux-devtools/utils";
 import type { Reducer } from "react";
 
 import type { EnsureAction, IncomingMessage } from "../actions";
-import { ActionTypes, MessageTypes, UseReducerActions, assertHasState } from "../actions";
+import {
+  ActionTypes,
+  MessageTypes,
+  UseReducerActions,
+  assertHasState,
+  unwrapAction,
+} from "../actions";
 import type { ActionState, DevtoolsConfig } from "../types";
 import { getToggledState, processActionCreators } from "../util";
 
@@ -88,12 +94,14 @@ export const messageReducer = <S, A>(
           return toggleAction(reducer, state, message.payload.id, message.state);
         }
         case ActionTypes.IMPORT_STATE: {
-          const { nextLiftedState } = message.payload;
+          const { nextLiftedState, preloadedState } = message.payload;
           if ("computedStates" in nextLiftedState) {
             return importState(state, nextLiftedState);
           }
-          // TODO: legacy format? not sure what to do with that
-          return state;
+          return nextLiftedState.reduce(
+            (importedState, action) => processAction(reducer, importedState, unwrapAction(action)),
+            shouldInitState<S, A>(preloadedState === undefined ? initialState : preloadedState),
+          );
         }
         case ActionTypes.PAUSE_RECORDING: {
           // paused here has already updated
