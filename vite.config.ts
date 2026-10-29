@@ -27,6 +27,9 @@ export default defineConfig({
     sortImports: true,
     ignorePatterns: [],
   },
+  staged: {
+    "*.{ts,md}": "vp fmt",
+  },
   test: {
     projects: [
       {

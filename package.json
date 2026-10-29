@@ -33,7 +33,6 @@
     "test": "vp test",
     "lint": "vp lint",
     "format": "vp fmt",
-    "pre-commit": "lint-staged",
     "attw": "attw",
     "publint": "publint",
     "type": "tsc",
@@ -59,8 +58,6 @@
     "eslint-plugin-react": "^7.34.1",
     "eslint-plugin-react-hooks": "^4.6.1",
     "eslint-plugin-vitest": "^0.5.4",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.2",
     "publint": "^0.2.7",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
@@ -72,9 +69,6 @@
   },
   "peerDependencies": {
     "react": ">=16.8.0"
-  },
-  "lint-staged": {
-    "*.{ts,md}": "vp fmt"
   },
   "devEngines": {
     "packageManager": {
