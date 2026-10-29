@@ -5,28 +5,18 @@ import { getActionsArray } from "@redux-devtools/utils";
 
 import { unwrapAction, type EnsureAction } from "./actions";
 
-const actionCreatorCache = new Map<string, Array<ActionCreatorObject>>();
-
 export const processActionCreators = (
   actionCreators: Config["actionCreators"],
 ): Array<ActionCreatorObject> => {
   if (!actionCreators) {
     return [];
   }
-  const cacheKey = JSON.stringify(actionCreators);
-  if (actionCreatorCache.has(cacheKey)) {
-    return actionCreatorCache.get(cacheKey)!;
-  }
   if (Array.isArray(actionCreators)) {
-    const actionsArray = actionCreators.flatMap<ActionCreatorObject>((actionCreator) =>
+    return actionCreators.flatMap<ActionCreatorObject>((actionCreator) =>
       getActionsArray({ "": actionCreator }),
     );
-    actionCreatorCache.set(cacheKey, actionsArray);
-    return actionsArray;
   }
-  const actionsArray = getActionsArray(actionCreators);
-  actionCreatorCache.set(cacheKey, actionsArray);
-  return actionsArray;
+  return getActionsArray(actionCreators);
 };
 
 export const getToggledState = <S, A>(
