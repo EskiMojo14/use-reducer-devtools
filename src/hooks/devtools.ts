@@ -1,5 +1,6 @@
 import type { Reducer, Dispatch } from "react";
 import { useDebugValue, useReducer, useRef } from "react";
+
 import { liftReducer } from "../reducers/lift";
 import {
   type ConnectResponse,
@@ -21,8 +22,9 @@ export function useReducerWithDevtools<S extends NotUndefined, A>(
   const connectionRef = useRef<ConnectResponse | null>(null);
   useFirstRenderEffect(() => {
     if (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
-      const response = (connectionRef.current =
-        window.__REDUX_DEVTOOLS_EXTENSION__.connect(withDefaults(config)));
+      const response = (connectionRef.current = window.__REDUX_DEVTOOLS_EXTENSION__.connect(
+        withDefaults(config),
+      ));
       response.init(initialStateRef.current);
     }
   });

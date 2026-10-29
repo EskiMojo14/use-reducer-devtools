@@ -1,5 +1,6 @@
 import type { Dispatch, MutableRefObject } from "react";
 import { useEffect } from "react";
+
 import { UseReducerActions, ensureAction, isAction } from "../actions";
 import type { ActionState, ConnectResponse } from "../types";
 

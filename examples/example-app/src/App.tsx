@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { useReducerWithDevtools } from "use-reducer-devtools";
+import { SetStateAction } from "react";
 
 import "./App.css";
-import { SetStateAction } from "react";
+import { useReducerWithDevtools } from "use-reducer-devtools";
 
 const counterSlice = createSlice({
   name: "counter",
@@ -77,9 +77,7 @@ function App() {
           <code>settableCount</code> is {settableCount}
         </p>
         <button onClick={() => setCount(10)}>Set to 10</button>
-        <button onClick={() => setCount((state) => state + 5)}>
-          Increase by 5
-        </button>
+        <button onClick={() => setCount((state) => state + 5)}>Increase by 5</button>
       </div>
     </>
   );

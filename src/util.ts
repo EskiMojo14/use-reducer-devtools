@@ -2,8 +2,8 @@ import type { Config } from "@redux-devtools/extension";
 import type { LiftedState } from "@redux-devtools/instrument";
 import type { ActionCreatorObject } from "@redux-devtools/utils";
 import { getActionsArray } from "@redux-devtools/utils";
-import type { ActionCreator } from "redux";
-import { unwrapAction, type Action, type EnsureAction } from "./actions";
+
+import { unwrapAction, type EnsureAction } from "./actions";
 
 const actionCreatorCache = new Map<string, Array<ActionCreatorObject>>();
 
@@ -18,14 +18,13 @@ export const processActionCreators = (
     return actionCreatorCache.get(cacheKey)!;
   }
   if (Array.isArray(actionCreators)) {
-    const actionsArray = actionCreators.flatMap<ActionCreatorObject>(
-      (actionCreator) => getActionsArray({ "": actionCreator }),
+    const actionsArray = actionCreators.flatMap<ActionCreatorObject>((actionCreator) =>
+      getActionsArray({ "": actionCreator }),
     );
     actionCreatorCache.set(cacheKey, actionsArray);
+    return actionsArray;
   }
-  const actionsArray = getActionsArray(
-    actionCreators as Record<string, ActionCreator<Action>>,
-  );
+  const actionsArray = getActionsArray(actionCreators);
   actionCreatorCache.set(cacheKey, actionsArray);
   return actionsArray;
 };
@@ -36,11 +35,7 @@ export const getToggledState = <S, A>(
   id: number,
   strState: string,
 ) => {
-  const liftedState = JSON.parse(strState) as LiftedState<
-    S,
-    EnsureAction<A>,
-    unknown
-  >;
+  const liftedState = JSON.parse(strState) as LiftedState<S, EnsureAction<A>, unknown>;
   const idx = liftedState.skippedActionIds.indexOf(id);
   const skipped = idx !== -1;
   const start = liftedState.stagedActionIds.indexOf(id);
@@ -48,21 +43,12 @@ export const getToggledState = <S, A>(
 
   let nextState = liftedState.computedStates[start - 1]!.state;
 
-  for (
-    let i = skipped ? start : start + 1;
-    i < liftedState.stagedActionIds.length;
-    i++
-  ) {
-    if (
-      i !== start &&
-      liftedState.skippedActionIds.includes(liftedState.stagedActionIds[i]!)
-    )
+  for (let i = skipped ? start : start + 1; i < liftedState.stagedActionIds.length; i++) {
+    if (i !== start && liftedState.skippedActionIds.includes(liftedState.stagedActionIds[i]!))
       continue; // it's already skipped
     nextState = reducer(
       nextState,
-      unwrapAction(
-        liftedState.actionsById[liftedState.stagedActionIds[i]!]!.action,
-      ),
+      unwrapAction(liftedState.actionsById[liftedState.stagedActionIds[i]!]!.action),
     );
     liftedState.computedStates[i]!.state = nextState;
   }

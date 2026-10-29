@@ -1,10 +1,6 @@
-import type {
-  Dispatch,
-  EffectCallback,
-  MutableRefObject,
-  Reducer,
-} from "react";
+import type { Dispatch, EffectCallback, MutableRefObject, Reducer } from "react";
 import { useDebugValue, useEffect, useReducer, useRef } from "react";
+
 import type { NotUndefined } from "../types";
 
 const useDevDebugValue: typeof useDebugValue =
@@ -27,18 +23,14 @@ export function useReducerWithLazyState<S, A>(
   reducer: Reducer<S, A>,
   initialState: S | (() => S),
 ): [S, Dispatch<A>] {
-  const [state, dispatch] = useReducer(reducer, 0, () =>
-    getInitialState(initialState),
-  );
+  const [state, dispatch] = useReducer(reducer, 0, () => getInitialState(initialState));
 
   useDebugValue(state);
 
   return [state, dispatch];
 }
 
-export function useLazyRef<T extends NotUndefined>(
-  value: T | (() => T),
-): MutableRefObject<T> {
+export function useLazyRef<T extends NotUndefined>(value: T | (() => T)): MutableRefObject<T> {
   const ref = useRef<T>();
   if (ref.current === undefined) {
     ref.current = getInitialState(value);

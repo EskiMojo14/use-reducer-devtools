@@ -1,13 +1,9 @@
 import type { LiftedState } from "@redux-devtools/instrument";
 import { evalAction } from "@redux-devtools/utils";
 import type { Reducer } from "react";
+
 import type { EnsureAction, IncomingMessage } from "../actions";
-import {
-  ActionTypes,
-  MessageTypes,
-  UseReducerActions,
-  assertHasState,
-} from "../actions";
+import { ActionTypes, MessageTypes, UseReducerActions, assertHasState } from "../actions";
 import type { ActionState, DevtoolsConfig } from "../types";
 import { getToggledState, processActionCreators } from "../util";
 
@@ -45,19 +41,11 @@ const toggleAction = <S, A>(
   id: number,
   strState: string,
 ): ActionState<S, A> => {
-  const { nextState, liftedState } = getToggledState(
-    reducer,
-    state.state,
-    id,
-    strState,
-  );
+  const { nextState, liftedState } = getToggledState(reducer, state.state, id, strState);
 
   return {
     state: nextState,
-    actions: [
-      ...state.actions,
-      [{ type: UseReducerActions.NULL }, liftedState],
-    ],
+    actions: [...state.actions, [{ type: UseReducerActions.NULL }, liftedState]],
   };
 };
 
@@ -66,10 +54,7 @@ const importState = <S, A>(
   nextLiftedState: LiftedState<S, EnsureAction<A>, unknown>,
 ): ActionState<S, A> => ({
   state: nextLiftedState.computedStates.slice(-1)[0]?.state ?? state.state,
-  actions: [
-    ...state.actions,
-    [{ type: UseReducerActions.NULL }, nextLiftedState],
-  ],
+  actions: [...state.actions, [{ type: UseReducerActions.NULL }, nextLiftedState]],
 });
 
 export const messageReducer = <S, A>(
@@ -100,12 +85,7 @@ export const messageReducer = <S, A>(
         }
         case ActionTypes.TOGGLE_ACTION: {
           assertHasState(message);
-          return toggleAction(
-            reducer,
-            state,
-            message.payload.id,
-            message.state,
-          );
+          return toggleAction(reducer, state, message.payload.id, message.state);
         }
         case ActionTypes.IMPORT_STATE: {
           const { nextLiftedState } = message.payload;
@@ -127,10 +107,7 @@ export const messageReducer = <S, A>(
       }
     }
     case MessageTypes.ACTION: {
-      const action = evalAction(
-        message.payload,
-        processActionCreators(config.actionCreators),
-      ) as A;
+      const action = evalAction(message.payload, processActionCreators(config.actionCreators)) as A;
       return processAction(reducer, state, action);
     }
     default:

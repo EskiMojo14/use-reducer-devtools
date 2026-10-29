@@ -11,5 +11,6 @@ const shouldUseDevtools =
   typeof window !== "undefined" &&
   window.__REDUX_DEVTOOLS_EXTENSION__;
 
-export const useReducerWithDevtools: typeof useReducerWithDevtoolsImpl =
-  shouldUseDevtools ? useReducerWithDevtoolsImpl : useReducerWithLazyState;
+export const useReducerWithDevtools: typeof useReducerWithDevtoolsImpl = shouldUseDevtools
+  ? useReducerWithDevtoolsImpl
+  : useReducerWithLazyState;

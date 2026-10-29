@@ -1,6 +1,20 @@
 {
   "name": "use-reducer-devtools",
   "version": "0.1.0",
+  "keywords": [
+    "devtools",
+    "hook",
+    "react",
+    "reducer",
+    "redux",
+    "use-reducer"
+  ],
+  "workspaces": [
+    "examples/*"
+  ],
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -12,41 +26,23 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
-  "workspaces": [
-    "examples/*"
-  ],
   "scripts": {
-    "prepare": "husky install",
-    "prebuild": "yarn run type",
-    "build": "tsup",
-    "test": "vitest",
-    "lint": "eslint",
-    "format": "prettier",
+    "prepare": "vp config",
+    "prebuild": "vp run type",
+    "build": "vp pack",
+    "test": "vp test",
+    "lint": "vp lint",
+    "format": "vp fmt",
     "pre-commit": "lint-staged",
     "attw": "attw",
     "publint": "publint",
     "type": "tsc",
-    "prepack": "yarn run publint",
-    "example": "yarn workspace example-app run dev"
+    "prepack": "vp run publint",
+    "example": "vp -C examples/example-app dev"
   },
-  "prettier": {},
-  "lint-staged": {
-    "*.{ts,md}": "prettier --write"
-  },
-  "tsup": {
-    "entry": [
-      "src/index.ts"
-    ],
-    "sourcemap": true,
-    "format": [
-      "esm",
-      "cjs"
-    ],
-    "dts": true,
-    "minify": true
+  "dependencies": {
+    "@redux-devtools/extension": "^3.3.0",
+    "@redux-devtools/utils": "^3.0.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.15.3",
@@ -64,29 +60,20 @@
     "eslint-plugin-vitest": "^0.5.4",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
-    "prettier": "^3.2.5",
     "publint": "^0.2.7",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5",
-    "vitest": "^4"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
   },
-  "dependencies": {
-    "@redux-devtools/extension": "^3.3.0",
-    "@redux-devtools/utils": "^3.0.0"
+  "lint-staged": {
+    "*.{ts,md}": "vp fmt"
   },
-  "keywords": [
-    "react",
-    "reducer",
-    "redux",
-    "hook",
-    "devtools",
-    "use-reducer"
-  ],
   "devEngines": {
     "packageManager": {
       "name": "pnpm",

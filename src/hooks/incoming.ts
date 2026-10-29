@@ -1,10 +1,7 @@
 import type { Dispatch, MutableRefObject } from "react";
 import { useEffect } from "react";
-import type {
-  EnsureAction,
-  IncomingMessage,
-  IncomingMessageAction,
-} from "../actions";
+
+import type { EnsureAction, IncomingMessage, IncomingMessageAction } from "../actions";
 import { ActionTypes, MessageTypes, incomingMessage } from "../actions";
 import type { ConnectResponse, StatusRefs } from "../types";
 
